@@ -27,10 +27,6 @@ const ContestPage = () => {
         "http://localhost:3000/api/contests/getall",
         { headers }
       );
-
-      // Log the response to see its structure
-      console.log("API Response:", response.data);
-
       // Check different possible data structures
       let contestsData = [];
 
