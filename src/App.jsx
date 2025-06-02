@@ -15,6 +15,7 @@ import Footer from "./components/Footer";
 import Login from "./components/login";
 import Signup from "./components/Signup";
 import { ToastContainer } from "react-toastify";
+import CreateContest from "./components/CreateContest";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -64,6 +65,20 @@ function App() {
               <>
                 <Navbar />
                 <ContestPage />
+                <Footer />
+              </>
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route
+          path="/add-contest"
+          element={
+            token ? (
+              <>
+                <Navbar />
+                <CreateContest />
                 <Footer />
               </>
             ) : (

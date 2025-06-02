@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
 
 const navLinks = [
   { href: "/home", label: "Home" },
@@ -10,56 +9,57 @@ const navLinks = [
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [userName, setUserName] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
   };
-
-  const [userName, setUserName] = useState(null);
 
   const logout = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
   };
 
-useEffect(() => {
-  const fetchUserName = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.log("No token found");
-        setUserName("Guest");
-        return;
-      }
-      
-      const response = await fetch("http://localhost:3000/api/users/info", {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Check if data.name exists, otherwise look for username or other property
-        setUserName(data.name);
-      } else {
-        console.error("API error:", data.message || "Unknown error");
-        setUserName("User");
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      setUserName("User");
-    }
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.log("No token found");
+          setUserName("Guest");
+          return;
+        }
 
-  // Fetch when component mounts and when profile is toggled
-  if (isProfileOpen) {
-    fetchUserName();
-  }
-}, [isProfileOpen]);
+        const response = await fetch("http://localhost:3000/api/users/info", {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setUserName(data.name);
+          setIsAdmin(data.isAdmin || false);
+        } else {
+          console.error("API error:", data.message || "Unknown error");
+          setUserName("User");
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setUserName("User");
+        setIsAdmin(false);
+      }
+    };
+
+    if (isProfileOpen) {
+      fetchUserData();
+    }
+  }, [isProfileOpen]);
 
   return (
     <header className="bg-gray-900 border-b border-gray-800 shadow-sm">
@@ -91,21 +91,54 @@ useEffect(() => {
 
       {/* Profile Sidebar */}
       {isProfileOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black/50 backdrop-blur-sm z-50">
-          <div className="absolute top-0 right-0 w-80 h-full bg-gray-800 p-4 shadow-xl">
+        <div className="fixed top-0 left-0 w-full h-full bg-black/50 backdrop-blur-sm z-50" onClick={toggleProfile}>
+          <div className="absolute top-0 right-0 w-80 h-full bg-gray-800 p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={toggleProfile}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-300"
             >
-              Close
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+                className="h-6 w-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
             <h2 className="text-2xl font-bold text-white mb-4">Profile</h2>
-            {/* Add profile content here */}
             <p className="text-gray-300">
-              {userName ? `Welcome, ${userName}!` : "Loading user data..."}
+              {userName ? (
+                <>
+                  Welcome, {userName}
+                  {isAdmin && (
+                    <sub className="text-green-500 ml-1">Admin</sub>
+                  )}
+                </>
+              ) : (
+                "Loading user data..."
+              )}
             </p>
+            {isAdmin && (
+              <Link
+                to="/add-contest"
+                className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2 px-4 rounded mt-4 block text-center"
+                onClick={toggleProfile}
+              >
+                Add Contest
+              </Link>
+            )}
             <button
-              onClick={logout}
+              onClick={() => {
+                logout();
+                toggleProfile();
+              }}
               className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
             >
               Logout
