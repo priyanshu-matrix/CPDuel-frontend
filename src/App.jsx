@@ -1,19 +1,19 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./HomePage";
-import LeaderboardPage from "./LeaderboardPage";
-import ContestPage from "./ContestPage";
-import ContestBracketPage from "./ContestBracketPage";
-import ContestLeaderboardPage from "./ContestLeaderboardPage";
-import ContestStartPage from "./ContestStartPage";
-import SheetsPage from "./SheetsPage";
-import DPSheetPage from "./DPSheetPage";
-import GraphSheetPage from "./GraphSheetPage";
-import TreeSheetPage from "./TreeSheetPage";
-import RangeQuerySheetPage from "./RangeQuerySheetPage";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
-import Login from "./login";
-import Signup from "./Signup";
+import HomePage from "./components/HomePage";
+import LeaderboardPage from "./components/LeaderboardPage";
+import ContestPage from "./components/ContestPage";
+import ContestBracketPage from "./components/ContestBracketPage";
+import ContestLeaderboardPage from "./components/ContestLeaderboardPage";
+import ContestStartPage from "./components/ContestStartPage";
+import SheetsPage from "./components/SheetsPage";
+import DPSheetPage from "./components/DPSheetPage";
+import GraphSheetPage from "./components/GraphSheetPage";
+import TreeSheetPage from "./components/TreeSheetPage";
+import RangeQuerySheetPage from "./components/RangeQuerySheetPage";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Login from "./components/login";
+import Signup from "./components/Signup";
 import { ToastContainer } from "react-toastify";
 
 function App() {
