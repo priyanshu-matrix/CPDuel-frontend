@@ -237,7 +237,7 @@ const ContestCard = ({ contest }) => {
                   name="description"
                   value={editFormData.description}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white min-h-[100px]"
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white h-24 resize-none"
                   required
                 ></textarea>
               </div>
