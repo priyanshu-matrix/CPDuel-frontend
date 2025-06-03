@@ -37,7 +37,6 @@ const Signup = () => {
             if (data.isAdmin) {
                 // Redirect to admin panel
                 localStorage.setItem('token', token);
-                localStorage.setItem('isAdmin', true);
                 window.location.href = "/";
                 toast.success('Welcome Admin!');
             } else {

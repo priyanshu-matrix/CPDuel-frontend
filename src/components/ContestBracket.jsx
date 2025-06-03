@@ -4,15 +4,16 @@ import axios from "axios";
 
 const TROPHY_IMG = "https://img.icons8.com/fluency/96/trophy.png";
 
+
 const ContestBracket = () => {
   const { contestId } = useParams();
   const {contestName} = useParams();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openSection, setOpenSection] = useState(null); // Track which section is open
-  const [isAdmin, setIsAdmin] = useState(false); // Track if current user is admin
   const [statusChangeLoading, setStatusChangeLoading] = useState(false);
 
   useEffect(() => {
@@ -25,13 +26,6 @@ const ContestBracket = () => {
         const response = await axios.get("http://localhost:3000/api/users/all", { headers });
         setUsers(response.data);
         
-        // Check if current user is admin from localStorage
-        if (token) {
-          const isAdminValue = localStorage.getItem("isAdmin") === "true";
-          setIsAdmin(isAdminValue);
-        }
-        
-        setError(null);
       } catch (err) {
         console.error("Error fetching users:", err);
         setError("Failed to load users");
@@ -41,6 +35,34 @@ const ContestBracket = () => {
     };
 
     fetchUsers();
+  }, []);
+
+  // Check if the user is an admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await axios.get("http://localhost:3000/api/users/info", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.isAdmin) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error("Error checking admin status:", err);
+        setError("Failed to check admin status");
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAdminStatus();
   }, []);
 
   // Handle status change for admin
@@ -156,7 +178,6 @@ const ContestBracket = () => {
             </span>
           )}
         </div>
-        
         {isAdmin && (
           <div className="ml-4">
             <select

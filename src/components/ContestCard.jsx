@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
 import { toast } from "react-toastify";
+import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
 
 const ContestCard = ({ contest }) => {
   const [registered, setRegistered] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
@@ -30,18 +33,33 @@ const ContestCard = ({ contest }) => {
     }
   }, [contest]);
 
-  // Function to check if user is admin directly from localStorage
-   const isUserAdmin = () => {
+ // Check if the user is an admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
+      }
       try {
-        const adminStatus = localStorage.getItem("isAdmin");
-        if (adminStatus) {
-          return adminStatus === "true";
+        const response = await axios.get("http://localhost:3000/api/users/info", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.isAdmin) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
         }
-      } catch (error) {
-        console.error("Error checking admin status:", error);
-        return false;
+      } catch (err) {
+        console.error("Error checking admin status:", err);
+        setError("Failed to check admin status");
+      } finally {
+        setLoading(false);
       }
     };
+    checkAdminStatus();
+  }, []);
 
   useEffect(() => {
     const checkIfRegistered = async () => {
@@ -209,7 +227,7 @@ const ContestCard = ({ contest }) => {
           View Contest
         </button>
       )}
-      {isUserAdmin() && (
+      {isAdmin && (
         <div className="flex justify-end mt-4">
           <button onClick={handleEdit} className="text-amber-500 hover:text-amber-400 mr-2">
             <AiFillEdit size={24} />
