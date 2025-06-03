@@ -53,7 +53,7 @@ const ContestBracket = () => {
         setStatusChangeLoading(false); // Reset loading state on early exit
         return;
       }
-      
+
       const userToUpdate = users.find(u => u._id === userId); 
       
       if (!userToUpdate) {
@@ -168,7 +168,6 @@ const ContestBracket = () => {
               <option value="primary">Primary</option>
               <option value="semi-finalists">Semi-finalist</option>
               <option value="finalists">Finalist</option>
-              <option value="winner">Winner</option>
             </select>
           </div>
         )}
@@ -245,7 +244,7 @@ const ContestBracket = () => {
           </button>
           
           {openSection === 'finals' && (
-            <div className="p-4 bg-gray-900 space-y-3">
+            <div className={`p-4 bg-gray-900 space-y-3 ${finalists.length > 5 ? 'max-h-60 overflow-y-scroll' : ''}`}>
               {finalists.length > 0 ? (
                 finalists.map((user, index) => (
                   <div key={index} className="mb-2">
@@ -272,7 +271,7 @@ const ContestBracket = () => {
           </button>
           
           {openSection === 'semifinals' && (
-            <div className="p-4 bg-gray-900 space-y-3">
+            <div className={`p-4 bg-gray-900 space-y-3 ${semiFinalists.length > 5 ? 'max-h-60 overflow-y-scroll' : ''}`}>
               {semiFinalists.length > 0 ? (
                 semiFinalists.map((user, index) => (
                   <div key={index} className="mb-2">
@@ -299,7 +298,7 @@ const ContestBracket = () => {
           </button>
           
           {openSection === 'primary' && (
-            <div className="p-4 bg-gray-900 space-y-3">
+            <div className={`p-4 bg-gray-900 space-y-3 ${primaryUsers.length > 5 ? 'max-h-60 overflow-y-scroll' : ''}`}>
               {primaryUsers.length > 0 ? (
                 primaryUsers.map((user, index) => (
                   <div key={index} className="mb-2">
