@@ -47,7 +47,8 @@ const ContestCard = ({ contest }) => {
     const checkIfRegistered = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:3000/api/users/checkContestRegistration/${contest._id}`, {
+        const contestIdentifier = contest.id || contest._id;
+        const response = await fetch(`http://localhost:3000/api/users/checkContestRegistration/${contestIdentifier}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -73,7 +74,7 @@ const ContestCard = ({ contest }) => {
     };
 
     checkIfRegistered();
-  }, [contest._id]);
+  }, [contest.id, contest._id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -99,9 +100,9 @@ const ContestCard = ({ contest }) => {
 
       if (response.ok) {
         toast.success("Successfully registered for the contest");
-        navigate(`/contest/${contest.id}`);
+        navigate(`/contest/${contest._id}`);
       } else {
-        navigate(`/contest/${contest.id}`);
+        navigate(`/contest/${contest._id}`);
         toast.success("Already registered for the contest");
       }
     } catch (error) {

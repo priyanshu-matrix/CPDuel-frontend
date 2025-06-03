@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -6,6 +6,7 @@ const TROPHY_IMG = "https://img.icons8.com/fluency/96/trophy.png";
 
 const ContestBracket = () => {
   const { contestId } = useParams();
+  const {contestName} = useParams();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,10 +34,24 @@ const ContestBracket = () => {
     fetchUsers();
   }, []);
 
-  // Filter users by their status
-  const primaryUsers = users.filter(user => user.status === 'primary');
-  const semiFinalists = users.filter(user => user.status === 'semi-finalists');
-  const finalists = users.filter(user => user.status === 'finalists');
+  // Filter users by their registration status for this specific contest
+  const primaryUsers = users.filter(user => 
+    user.registeredContests && user.registeredContests.some(contest => 
+      contest.contestId === contestId && contest.status === 'primary'
+    )
+  );
+  
+  const semiFinalists = users.filter(user => 
+    user.registeredContests && user.registeredContests.some(contest => 
+      contest.contestId === contestId && contest.status === 'semi-finalists'
+    )
+  );
+  
+  const finalists = users.filter(user => 
+    user.registeredContests && user.registeredContests.some(contest => 
+      contest.contestId === contestId && contest.status === 'finalists'
+    )
+  );
 
   // Toggle function to handle opening/closing sections
   const toggleSection = (section) => {
@@ -55,9 +70,19 @@ const ContestBracket = () => {
       </div>
     );
     
+    // Find the registration entry for this specific contest
+    const contestRegistration = user.registeredContests?.find(
+      registration => registration.contestId === contestId
+    );
+    
     return (
       <div className="bg-gray-700 rounded-lg h-10 w-full mx-auto flex items-center justify-center text-white font-medium overflow-hidden text-ellipsis px-4">
-        {user.username || user.name || "Player"}
+        <span>{user.name || "Player"}</span>
+        {contestRegistration && (
+          <span className="ml-2 text-xs text-gray-400">
+            {new Date(contestRegistration.registeredAt).toLocaleDateString()}
+          </span>
+        )}
       </div>
     );
   };
