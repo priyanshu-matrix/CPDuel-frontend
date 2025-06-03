@@ -58,21 +58,8 @@ const ContestPage = () => {
         setContests(contestsData);
         setTotalPages(Math.ceil(contestsData.length / contestsPerPage));
       } else {
-        // Check if we have the dummy contest to use as fallback
-        const dummyContest = {
-          id: "tcp-open-1",
-          title: "TCP Open Contest 1",
-          date: "June 15, 2025",
-          duration: "2 hours",
-          problems: 5,
-          level: "Open for all",
-          description:
-            "Join the very first TCP Open Contest! Test your skills with 5 unique problems, compete with the best, and climb the leaderboard. Prizes for top performers!",
-        };
-
-        setContests([dummyContest]);
+        setContests([]);
         setTotalPages(1);
-        console.log("Using fallback dummy contest data");
       }
 
       setError(null);
