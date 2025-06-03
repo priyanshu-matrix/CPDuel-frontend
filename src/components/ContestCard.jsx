@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
+import { toast } from "react-toastify";
 
 const ContestCard = ({ contest }) => {
   const [registered, setRegistered] = useState(false);
@@ -97,13 +98,11 @@ const ContestCard = ({ contest }) => {
       });
 
       if (response.ok) {
-        console.log("Successfully registered for the contest");
+        toast.success("Successfully registered for the contest");
         navigate(`/contest/${contest.id}`);
       } else {
-        const errorData = await response.json();
-        console.error("Registration failed:", errorData.message || "Unknown error");
-        alert("Failed to register for the contest. Please try again.");
-        setRegistered(false);
+        navigate(`/contest/${contest.id}`);
+        toast.success("Already registered for the contest");
       }
     } catch (error) {
       console.error("Error registering for contest:", error);
@@ -157,7 +156,8 @@ const ContestCard = ({ contest }) => {
         });
 
         if (response.ok) {
-          console.log("Contest deleted successfully");
+            console.log("Contest deleted successfully");
+            window.location.reload();
           // Optionally refresh the contest list here
         } else {
           try {

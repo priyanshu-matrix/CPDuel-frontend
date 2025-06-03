@@ -52,7 +52,7 @@ const ContestPage = () => {
         contestsData = Object.values(response.data);
       }
 
-      console.log("Processed contests data:", contestsData);
+      // console.log("Processed contests data:", contestsData);
 
       if (contestsData.length > 0) {
         setContests(contestsData);
