@@ -12,6 +12,8 @@ const ContestBracket = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openSection, setOpenSection] = useState(null); // Track which section is open
+  const [isAdmin, setIsAdmin] = useState(false); // Track if current user is admin
+  const [statusChangeLoading, setStatusChangeLoading] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -22,6 +24,13 @@ const ContestBracket = () => {
         
         const response = await axios.get("http://localhost:3000/api/users/all", { headers });
         setUsers(response.data);
+        
+        // Check if current user is admin from localStorage
+        if (token) {
+          const isAdminValue = localStorage.getItem("isAdmin") === "true";
+          setIsAdmin(isAdminValue);
+        }
+        
         setError(null);
       } catch (err) {
         console.error("Error fetching users:", err);
@@ -33,6 +42,68 @@ const ContestBracket = () => {
 
     fetchUsers();
   }, []);
+
+  // Handle status change for admin
+  const handleStatusChange = async (userId, newStatus) => { // userId is assumed to be user._id (MongoDB ID)
+    try {
+      setStatusChangeLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required");
+        setStatusChangeLoading(false); // Reset loading state on early exit
+        return;
+      }
+      
+      const userToUpdate = users.find(u => u._id === userId); 
+      
+      if (!userToUpdate) {
+        setError("User not found locally. Cannot determine API UID.");
+        setStatusChangeLoading(false); // Reset loading state on early exit
+        return;
+      }
+
+      const apiUserUid = userToUpdate.uid; // Assuming the Firebase-like UID field is named 'uid'
+
+      if (!apiUserUid) {
+        setError("API UID (e.g., Firebase UID) is missing for the selected user.");
+        setStatusChangeLoading(false); // Reset loading state on early exit
+        return;
+      }
+      
+      await axios.post(
+        "http://localhost:3000/api/users/changeUserStatus",
+        {
+          uid: apiUserUid, // Use the correct Firebase-like UID for the API
+          contestId,
+          contestStatus: newStatus,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update local state. 'userId' is user._id, suitable for this.
+      setUsers(prevUsers =>
+        prevUsers.map(user => {
+          if (user._id === userId) { 
+            const updatedContests = user.registeredContests.map(contest => {
+              if (contest.contestId === contestId) {
+                return { ...contest, status: newStatus };
+              }
+              return contest;
+            });
+            return { ...user, registeredContests: updatedContests };
+          }
+          return user;
+        })
+      );
+      setError(null); // Clear any previous error on success
+      
+    } catch (err) {
+      console.error("Error changing user status:", err);
+      setError("Failed to update user status");
+    } finally {
+      setStatusChangeLoading(false);
+    }
+  };
 
   // Filter users by their registration status for this specific contest
   const primaryUsers = users.filter(user => 
@@ -76,12 +147,30 @@ const ContestBracket = () => {
     );
     
     return (
-      <div className="bg-gray-700 rounded-lg h-10 w-full mx-auto flex items-center justify-center text-white font-medium overflow-hidden text-ellipsis px-4">
-        <span>{user.name || "Player"}</span>
-        {contestRegistration && (
-          <span className="ml-2 text-xs text-gray-400">
-            {new Date(contestRegistration.registeredAt).toLocaleDateString()}
-          </span>
+      <div className="bg-gray-700 rounded-lg w-full mx-auto flex items-center justify-between text-white font-medium overflow-hidden text-ellipsis px-4 py-2">
+        <div>
+          <span>{user.name || "Player"}</span>
+          {contestRegistration && (
+            <span className="ml-2 text-xs text-gray-400">
+              {new Date(contestRegistration.registeredAt).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+        
+        {isAdmin && (
+          <div className="ml-4">
+            <select
+              className="bg-gray-800 text-white text-sm rounded px-2 py-1 border border-gray-600"
+              value={contestRegistration?.status || ""}
+              onChange={(e) => handleStatusChange(user._id, e.target.value)}
+              disabled={statusChangeLoading}
+            >
+              <option value="primary">Primary</option>
+              <option value="semi-finalists">Semi-finalist</option>
+              <option value="finalists">Finalist</option>
+              <option value="winner">Winner</option>
+            </select>
+          </div>
         )}
       </div>
     );
