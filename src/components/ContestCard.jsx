@@ -42,6 +42,38 @@ const ContestCard = ({ contest }) => {
       }
     };
 
+  useEffect(() => {
+    const checkIfRegistered = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:3000/api/users/checkContestRegistration/${contest._id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isRegistered) {
+            setRegistered(true);
+          } else {
+            setRegistered(false);
+          }
+        } else {
+          console.error("Failed to check registration status");
+          setRegistered(false); // Assume not registered in case of error
+        }
+      } catch (error) {
+        console.error("Error checking registration status:", error);
+        setRegistered(false); // Assume not registered in case of error
+      }
+    };
+
+    checkIfRegistered();
+  }, [contest._id]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditFormData({
@@ -50,11 +82,34 @@ const ContestCard = ({ contest }) => {
     });
   };
 
-  const handleRegister = () => {
-    setRegistered(true);
-    setTimeout(() => {
-      navigate(`/contest/${contest.id}`);
-    }, 500); // Optional: small delay to show button change
+  const handleRegister = async () => {
+    try {
+      setRegistered(true);
+      const token = localStorage.getItem("token");
+      
+      const response = await fetch("http://localhost:3000/api/users/registerContest", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ contestId: contest._id })
+      });
+
+      if (response.ok) {
+        console.log("Successfully registered for the contest");
+        navigate(`/contest/${contest.id}`);
+      } else {
+        const errorData = await response.json();
+        console.error("Registration failed:", errorData.message || "Unknown error");
+        alert("Failed to register for the contest. Please try again.");
+        setRegistered(false);
+      }
+    } catch (error) {
+      console.error("Error registering for contest:", error);
+      alert("An error occurred during registration. Please try again.");
+      setRegistered(false);
+    }
   };
 
   const handleEdit = () => {
@@ -148,9 +203,9 @@ const ContestCard = ({ contest }) => {
       ) : (
         <button
           className="bg-green-500 text-white font-semibold px-6 py-2 rounded-full transition"
-          disabled
+          onClick={() => navigate(`/contest/${contest._id}`)}
         >
-          Joining...
+          View Contest
         </button>
       )}
       {isUserAdmin() && (
