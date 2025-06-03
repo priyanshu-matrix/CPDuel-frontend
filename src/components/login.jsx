@@ -49,6 +49,7 @@ const Login = () => {
             if (data.isAdmin) {
                 // Redirect to admin panel
                 localStorage.setItem('token', token);
+                localStorage.setItem('isAdmin', true);
                 window.location.href = "/home";
             } else {
                 // Regular user page
@@ -123,13 +124,12 @@ const Login = () => {
             if (data.isAdmin) {
                 // Redirect to admin panel
                 localStorage.setItem('token', token);
+                localStorage.setItem('isAdmin', true);
                 window.location.href = "/home";
-                toast.success('Welcome Admin!');
             } else {
                 // Regular user page
                 localStorage.setItem('token', token);
                 window.location.href = "/home";
-                toast.success('Welcome CPer!');
             }
         } catch (error) {
             console.error("Error logging in with Google:", error);

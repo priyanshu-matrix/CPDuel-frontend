@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
 
 const ContestCard = ({ contest }) => {
   const [registered, setRegistered] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",
     date: "",
@@ -17,9 +16,6 @@ const ContestCard = ({ contest }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is admin when component mounts
-    checkAdminStatus();
-    
     // Initialize form data with current contest details
     if (contest) {
       setEditFormData({
@@ -33,20 +29,18 @@ const ContestCard = ({ contest }) => {
     }
   }, [contest]);
 
-  const checkAdminStatus = () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        // Decode the JWT token to check for admin role
-        // This is a simple approach - you might need to adapt based on your token structure
-        const tokenData = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(tokenData.role === "admin" || tokenData.isAdmin);
+  // Function to check if user is admin directly from localStorage
+   const isUserAdmin = () => {
+      try {
+        const adminStatus = localStorage.getItem("isAdmin");
+        if (adminStatus) {
+          return adminStatus === "true";
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        return false;
       }
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-      setIsAdmin(false);
-    }
-  };
+    };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -159,6 +153,7 @@ const ContestCard = ({ contest }) => {
           Joining...
         </button>
       )}
+      {isUserAdmin() && (
         <div className="flex justify-end mt-4">
           <button onClick={handleEdit} className="text-amber-500 hover:text-amber-400 mr-2">
             <AiFillEdit size={24} />
@@ -167,7 +162,7 @@ const ContestCard = ({ contest }) => {
             <AiFillDelete size={24} />
           </button>
         </div>
-      
+      )}
 
       {/* Edit Contest Modal */}
       {showEditModal && (

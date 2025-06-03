@@ -18,6 +18,7 @@ const Navbar = () => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("isAdmin");
     window.location.href = "/";
   };
 
