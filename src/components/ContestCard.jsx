@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 const ContestCard = ({ contest }) => {
   const [registered, setRegistered] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     title: "",

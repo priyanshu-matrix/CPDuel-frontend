@@ -37,6 +37,29 @@ const ContestBracket = () => {
     fetchUsers();
   }, []);
 
+  const [contestTitle, setContestTitle] = useState("");
+
+  useEffect(() => {
+    const fetchContestTitle = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
+      }
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      try {
+        const response = await axios.get(`http://localhost:3000/api/contests/getcon/${contestId}`, { headers });
+        setContestTitle(response.data.contest.title);
+      } catch (error) {
+        console.error("Error fetching contest title:", error);
+        setError("Failed to load contest title");
+      }
+    };
+
+    fetchContestTitle();
+  }, [contestId]);
+
   // Check if the user is an admin
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -335,7 +358,7 @@ const ContestBracket = () => {
       </div>
       
       <div className="mt-8 text-3xl font-bold text-center tracking-wide text-amber-400">
-        {contestId.toUpperCase().replace(/-/g, ' ')}
+        {contestTitle.toUpperCase().replace(/-/g, ' ')}
       </div>
       <div className="mt-2 text-lg text-gray-300 text-center">
         Who will be crowned champion?
