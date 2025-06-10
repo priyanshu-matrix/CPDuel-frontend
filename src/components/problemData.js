@@ -1,9 +1,12 @@
 // problemData.js
 
 const problemData = {
+    id: 1111,
     title: "1. Two Sum",
     difficulty: "Easy",
-    description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.`,
+    description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+    $$ \\sum_{i=0}^{n-1} nums[i] = target $$
+    `,
     examples: [
         {
             input: "nums = [2,7,11,15], target = 9",
@@ -17,9 +20,9 @@ const problemData = {
         }
     ],
     constraints: [
-        "2 <= nums.length <= 10⁴",
-        "-10⁹ <= nums[i] <= 10⁹",
-        "-10⁹ <= target <= 10⁹"
+        "$2 <= nums.length <= 10⁴$",
+        "$-10^{9} <= nums[i] <= 10⁹$",
+        "$-10⁹ <= target <= 10⁹$"
     ]
 };
 
