@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import problemData from "./problemData";
+import getRandomProblem from "./problemData";
 import MonacoEditor from "react-monaco-editor";
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
+
+const problemData = getRandomProblem();
 
 // Function to parse text and render inline/block math with better regex
 const parseTextWithMath = (text) => {
