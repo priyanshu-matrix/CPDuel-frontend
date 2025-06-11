@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MonacoEditor from "react-monaco-editor";
-import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import "katex/dist/katex.min.css";
+import { InlineMath, BlockMath } from "react-katex";
 import axios from "axios";
 
 // Define an interface for the problem data structure
@@ -30,15 +30,15 @@ interface ProblemData {
 // Function to parse text and render inline/block math with better regex
 const parseTextWithMath = (text) => {
   if (!text) return "";
-  
+
   const mathRegex = /(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$)/g;
   const parts = text.split(mathRegex);
-  
+
   return parts.map((part, index) => {
-    if (part.startsWith('$$') && part.endsWith('$$')) {
+    if (part.startsWith("$$") && part.endsWith("$$")) {
       const mathContent = part.slice(2, -2).trim();
       return <BlockMath key={index} math={mathContent} />;
-    } else if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
+    } else if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
       const mathContent = part.slice(1, -1).trim();
       return <InlineMath key={index} math={mathContent} />;
     }
@@ -60,6 +60,7 @@ const ContestStartPage = () => {
   const [userCode, setUserCode] = useState(
     `#include <bits/stdc++.h>\nusing namespace std;\nint main() {\n    // Your code here\n    return 0;\n}`
   );
+  const [isRunning, setIsRunning] = useState(false);
 
   // Fetch problem data
   useEffect(() => {
@@ -73,31 +74,42 @@ const ContestStartPage = () => {
         setLoading(true);
         const token = localStorage.getItem("token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        
+
         const response = await axios.get(
           `http://localhost:3000/api/contests/getRandomContestProblem/${contestId}`,
           { headers }
         );
-        
+
         if (response.data && response.data.problem) {
           const decodedProblem = {
             ...response.data.problem,
-            title: response.data.problem.title ? atob(response.data.problem.title) : '',
-            description: response.data.problem.description ? atob(response.data.problem.description) : '',
-            inputFormat: response.data.problem.inputFormat ? atob(response.data.problem.inputFormat) : '',
-            outputFormat: response.data.problem.outputFormat ? atob(response.data.problem.outputFormat) : '',
-            examples: response.data.problem.examples?.map(ex => ({
-              ...ex,
-              input: ex.input ? atob(ex.input) : '',
-              output: ex.output ? atob(ex.output) : '',
-              explanation: ex.explanation ? atob(ex.explanation) : ''
-            })) || [],
-            constraints: response.data.problem.constraints?.map(constraint => 
-              constraint ? atob(constraint) : ''
-            ) || [],
-            tags: response.data.problem.tags?.map(tag => 
-              tag ? atob(tag) : ''
-            ) || []
+            title: response.data.problem.title
+              ? atob(response.data.problem.title)
+              : "",
+            description: response.data.problem.description
+              ? atob(response.data.problem.description)
+              : "",
+            inputFormat: response.data.problem.inputFormat
+              ? atob(response.data.problem.inputFormat)
+              : "",
+            outputFormat: response.data.problem.outputFormat
+              ? atob(response.data.problem.outputFormat)
+              : "",
+            examples:
+              response.data.problem.examples?.map((ex) => ({
+                ...ex,
+                input: ex.input ? atob(ex.input) : "",
+                output: ex.output ? atob(ex.output) : "",
+                explanation: ex.explanation ? atob(ex.explanation) : "",
+              })) || [],
+            constraints:
+              response.data.problem.constraints?.map((constraint) =>
+                constraint ? atob(constraint) : ""
+              ) || [],
+            tags:
+              response.data.problem.tags?.map((tag) =>
+                tag ? atob(tag) : ""
+              ) || [],
           };
           setProblemData(decodedProblem);
         } else {
@@ -132,19 +144,63 @@ const ContestStartPage = () => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Easy": return "bg-emerald-500 text-emerald-100";
-      case "Medium": return "bg-amber-500 text-amber-100";
-      case "Hard": return "bg-red-500 text-red-100";
-      default: return "bg-gray-500 text-gray-100";
+      case "Easy":
+        return "bg-emerald-500 text-emerald-100";
+      case "Medium":
+        return "bg-amber-500 text-amber-100";
+      case "Hard":
+        return "bg-red-500 text-red-100";
+      default:
+        return "bg-gray-500 text-gray-100";
     }
   };
 
-  const handleRun = () => {
-    setConsoleOutput([]);
+  const handleRun = async () => {
+    setIsRunning(true);
+    setConsoleOutput(["Running code..."]);
+
+    try {
+      // Simulate API call for code execution
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Mock response - replace with actual API call
+      const mockResult = {
+        status: "Accepted",
+        stdout: "Hello World!\n",
+        stderr: null,
+        compile_output: null,
+        time: "0.02",
+        memory: 2048,
+      };
+
+      const output = [];
+      output.push(`Status: ${mockResult.status}`);
+      output.push(`Execution Time: ${mockResult.time}s`);
+      output.push(`Memory Used: ${mockResult.memory}KB`);
+      output.push("--- Output ---");
+      if (mockResult.stdout) {
+        output.push(mockResult.stdout);
+      }
+      if (mockResult.stderr) {
+        output.push("--- Error ---");
+        output.push(mockResult.stderr);
+      }
+      if (mockResult.compile_output) {
+        output.push("--- Compile Output ---");
+        output.push(mockResult.compile_output);
+      }
+
+      setConsoleOutput(output);
+    } catch (error) {
+      setConsoleOutput(["Error: Failed to execute code", error.message]);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const handleSubmit = () => {
-    setConsoleOutput([]);
+    setConsoleOutput(["Submitting solution..."]);
+    // Add submit logic here
   };
 
   if (loading) {
@@ -201,12 +257,16 @@ const ContestStartPage = () => {
             <h1 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
               {problemData.title}
             </h1>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(problemData.difficulty)}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(
+                problemData.difficulty
+              )}`}
+            >
               {problemData.difficulty}
             </span>
-            <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-semibold border border-blue-500/30">
+            {/* <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-semibold border border-blue-500/30">
               {problemData.points} pts
-            </span>
+            </span> */}
           </div>
         </div>
         <div className="flex items-center space-x-4">
@@ -242,57 +302,88 @@ const ContestStartPage = () => {
 
             {/* Problem Limits */}
             <section className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50">
-              <h2 className="text-lg font-semibold mb-3 text-amber-400">Problem Constraints</h2>
+              <h2 className="text-lg font-semibold mb-3 text-amber-400">
+                Problem Constraints
+              </h2>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="bg-gray-700/30 p-3 rounded-lg">
                   <span className="text-gray-400">Time Limit:</span>
-                  <span className="ml-2 font-mono text-green-400">{problemData.timeLimit}s</span>
+                  <span className="ml-2 font-mono text-green-400">
+                    {problemData.timeLimit}s
+                  </span>
                 </div>
                 <div className="bg-gray-700/30 p-3 rounded-lg">
                   <span className="text-gray-400">Memory Limit:</span>
-                  <span className="ml-2 font-mono text-blue-400">{problemData.memoryLimit}MB</span>
+                  <span className="ml-2 font-mono text-blue-400">
+                    {problemData.memoryLimit}MB
+                  </span>
                 </div>
               </div>
             </section>
 
             {/* Description */}
             <section className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50">
-              <h2 className="text-lg font-semibold mb-3 text-amber-400">Description</h2>
-              <div className="text-gray-300 leading-relaxed">{parseTextWithMath(problemData.description)}</div>
+              <h2 className="text-lg font-semibold mb-3 text-amber-400">
+                Description
+              </h2>
+              <div className="text-gray-300 leading-relaxed">
+                {parseTextWithMath(problemData.description)}
+              </div>
             </section>
 
             {/* Input/Output Format */}
             {problemData.inputFormat && (
               <section className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50">
-                <h2 className="text-lg font-semibold mb-3 text-amber-400">Input Format</h2>
-                <div className="text-gray-300 leading-relaxed">{parseTextWithMath(problemData.inputFormat)}</div>
+                <h2 className="text-lg font-semibold mb-3 text-amber-400">
+                  Input Format
+                </h2>
+                <div className="text-gray-300 leading-relaxed">
+                  {parseTextWithMath(problemData.inputFormat)}
+                </div>
               </section>
             )}
 
             {problemData.outputFormat && (
               <section className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50">
-                <h2 className="text-lg font-semibold mb-3 text-amber-400">Output Format</h2>
-                <div className="text-gray-300 leading-relaxed">{parseTextWithMath(problemData.outputFormat)}</div>
+                <h2 className="text-lg font-semibold mb-3 text-amber-400">
+                  Output Format
+                </h2>
+                <div className="text-gray-300 leading-relaxed">
+                  {parseTextWithMath(problemData.outputFormat)}
+                </div>
               </section>
             )}
 
             {/* Examples */}
             {problemData.examples.map((ex, idx) => (
-              <section key={idx} className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50">
-                <h3 className="font-semibold mb-3 text-amber-400">Example {idx + 1}:</h3>
+              <section
+                key={idx}
+                className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50"
+              >
+                <h3 className="font-semibold mb-3 text-amber-400">
+                  Example {idx + 1}:
+                </h3>
                 <div className="space-y-3">
                   <div className="bg-gray-900/50 p-3 rounded-lg border border-gray-600/30">
                     <p className="text-green-400 font-medium mb-1">Input:</p>
-                    <pre className="text-gray-300 font-mono text-sm">{parseTextWithMath(ex.input)}</pre>
+                    <pre className="text-gray-300 font-mono text-sm">
+                      {parseTextWithMath(ex.input)}
+                    </pre>
                   </div>
                   <div className="bg-gray-900/50 p-3 rounded-lg border border-gray-600/30">
                     <p className="text-blue-400 font-medium mb-1">Output:</p>
-                    <pre className="text-gray-300 font-mono text-sm">{parseTextWithMath(ex.output)}</pre>
+                    <pre className="text-gray-300 font-mono text-sm">
+                      {parseTextWithMath(ex.output)}
+                    </pre>
                   </div>
                   {ex.explanation && (
                     <div className="bg-gray-900/50 p-3 rounded-lg border border-gray-600/30">
-                      <p className="text-purple-400 font-medium mb-1">Explanation:</p>
-                      <div className="text-gray-300 text-sm">{parseTextWithMath(ex.explanation)}</div>
+                      <p className="text-purple-400 font-medium mb-1">
+                        Explanation:
+                      </p>
+                      <div className="text-gray-300 text-sm">
+                        {parseTextWithMath(ex.explanation)}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -301,7 +392,9 @@ const ContestStartPage = () => {
 
             {/* Constraints */}
             <section className="bg-gray-800/40 backdrop-blur-sm p-4 rounded-lg border border-gray-700/50">
-              <h3 className="font-semibold mb-3 text-amber-400">Constraints:</h3>
+              <h3 className="font-semibold mb-3 text-amber-400">
+                Constraints:
+              </h3>
               <ul className="space-y-1">
                 {problemData.constraints.map((c, idx) => (
                   <li key={idx} className="text-gray-300 flex items-start">
@@ -316,7 +409,7 @@ const ContestStartPage = () => {
 
         {/* Enhanced Code Editor Section */}
         <div className="w-1/2 flex flex-col bg-gray-900/30 min-h-0">
-          {/* Code Editor */}
+          {/* Code Editor - Now takes half of the available space */}
           <div className="flex-1 p-4 min-h-0">
             <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg border border-gray-700/50 h-full flex flex-col shadow-xl">
               <div className="flex items-center px-4 py-3 border-b border-gray-700/50 text-sm text-gray-400 shrink-0 bg-gray-800/80">
@@ -329,7 +422,9 @@ const ContestStartPage = () => {
                     id="language"
                     className="rounded-md border-gray-600 bg-gray-700/80 text-gray-300 text-sm px-3 py-1 focus:ring-2 focus:ring-amber-400 focus:border-transparent"
                     value={language_id}
-                    onChange={(e) => setLanguage_id(parseInt(e.target.value, 10))}
+                    onChange={(e) =>
+                      setLanguage_id(parseInt(e.target.value, 10))
+                    }
                   >
                     <option value={54}>C++ (GCC 9.2.0)</option>
                     <option value={53}>C++ (GCC 8.3.0)</option>
@@ -366,44 +461,61 @@ const ContestStartPage = () => {
                     automaticLayout: true,
                     fontFamily: "'JetBrains Mono', 'Consolas', monospace",
                     lineHeight: 22,
-                    renderLineHighlight: 'gutter',
+                    renderLineHighlight: "gutter",
                   }}
                 />
               </div>
             </div>
           </div>
 
-          {/* Enhanced Console Output */}
-          {consoleOutput.length > 0 && (
-            <div className="h-32 bg-gray-800/60 backdrop-blur-sm p-4 overflow-y-auto border-t border-gray-700/50 shrink-0">
-              <h4 className="text-sm font-semibold text-amber-400 mb-2 flex items-center">
-                <span className="mr-2">📟</span> Output:
-              </h4>
-              {consoleOutput.map((line, idx) => (
-                <pre key={idx} className="text-sm font-mono text-gray-300 leading-relaxed">
-                  {line}
-                </pre>
-              ))}
+          {/* Enhanced Console Output - Now takes half of the available space */}
+          <div className="flex-1 p-4 min-h-0">
+            <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg border border-gray-700/50 h-full flex flex-col shadow-xl">
+              <div className="px-4 py-3 border-b border-gray-700/50 shrink-0 bg-gray-800/80">
+                <h4 className="text-sm font-semibold text-amber-400 flex items-center">
+                </h4>
+                <div className=" p-4 flex justify-between items-center shrink-0">
+                  <button
+                    onClick={handleRun}
+                    disabled={isRunning}
+                    className={`px-6 py-2 rounded-lg transition-all duration-200 font-medium flex items-center space-x-2 shadow-lg ${
+                      isRunning
+                        ? "bg-gray-600 cursor-not-allowed"
+                        : "bg-blue-600/80 hover:bg-blue-600 hover:scale-105"
+                    }`}
+                  >
+                    <span>{isRunning ? "⏳" : "▶️"}</span>
+                    <span>{isRunning ? "Running..." : "Run"}</span>
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 px-6 py-2 rounded-lg text-gray-900 font-semibold transition-all duration-200 hover:scale-105 shadow-lg flex items-center space-x-2"
+                  >
+                    <span>🚀</span>
+                    <span>Submit</span>
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 p-4 overflow-y-auto min-h-0">
+                {consoleOutput.length > 0 ? (
+                  consoleOutput.map((line, idx) => (
+                    <pre
+                      key={idx}
+                      className="text-sm font-mono text-gray-300 leading-relaxed mb-1"
+                    >
+                      {line}
+                    </pre>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm italic">
+                    Run your code to see output...
+                  </p>
+                )}
+              </div>
             </div>
-          )}
+          </div>
 
           {/* Enhanced Control Bar */}
-          <div className="bg-gray-800/80 backdrop-blur-sm p-4 flex justify-between items-center border-t border-gray-700/50 shrink-0">
-            <button
-              onClick={handleRun}
-              className="bg-blue-600/80 hover:bg-blue-600 px-6 py-2 rounded-lg transition-all duration-200 hover:scale-105 font-medium flex items-center space-x-2 shadow-lg"
-            >
-              <span>▶️</span>
-              <span>Run</span>
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 px-6 py-2 rounded-lg text-gray-900 font-semibold transition-all duration-200 hover:scale-105 shadow-lg flex items-center space-x-2"
-            >
-              <span>🚀</span>
-              <span>Submit</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>

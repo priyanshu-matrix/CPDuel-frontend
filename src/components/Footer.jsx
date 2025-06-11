@@ -88,7 +88,10 @@ const Footer = () => (
       <span>© {new Date().getFullYear()} CP Duel. All rights reserved.</span>
       <span className="block mt-1">
         Made with <span className="text-amber-400">♥</span> for competitive
-        programmers by <span className="text-amber-400">Shaurya Agrawal</span>.
+        programmers by <span className="text-amber-400">Priyanshu Kumar Pandey</span> & <span className="text-fuchsia-600">Sheryash Kumar Dheemar</span>
+      </span >
+      <span className="block mt-1">
+        Guided by <span className="text-cyan-400">Shaurya Agrawal</span>
       </span>
     </div>
   </footer>

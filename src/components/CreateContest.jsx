@@ -83,7 +83,7 @@ const CreateContest = () => {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div>
                                         <label htmlFor="id" className="block text-sm font-medium text-gray-300 mb-2">
-                                            Contest ID *
+                                            Contest ID - Name
                                         </label>
                                         <input
                                             type="text"
@@ -92,7 +92,7 @@ const CreateContest = () => {
                                             onChange={handleChange}
                                             required
                                             className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                            placeholder="Enter unique contest ID"
+                                            placeholder="Enter unique contest ID-NAME"
                                         />
                                     </div>
 
