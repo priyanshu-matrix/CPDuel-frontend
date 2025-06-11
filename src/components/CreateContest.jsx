@@ -75,123 +75,123 @@ const CreateContest = () => {
                     <div className="bg-slate-800/50 backdrop-blur-lg border border-slate-700/50 rounded-2xl shadow-2xl p-8">
                         <form className="space-y-8" onSubmit={handleSubmit}>
                             {/* Basic Information */}
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
-                                    Contest Information
-                                </h2>
-                                
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <div>
-                                        <label htmlFor="id" className="block text-sm font-medium text-gray-300 mb-2">
-                                            Contest ID - Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="id"
-                                            value={formData.id}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                            placeholder="Enter unique contest ID-NAME"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                                            Contest Title *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="title"
-                                            value={formData.title}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                            placeholder="Enter contest title"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-                                        Contest Description
-                                    </label>
-                                    <textarea
-                                        id="description"
-                                        rows="4"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                        placeholder="Describe the contest objectives and rules..."
-                                    />
-                                </div>
-                            </div>
                                                         <div className="space-y-6">
                                                             <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
-                                                                Contest Details
+                                                                Contest Information
                                                             </h2>
                                                             
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                                                 <div>
-                                                                    <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-2">
-                                                                        Contest Date
-                                                                    </label>
-                                                                    <input
-                                                                        type="datetime-local"
-                                                                        id="date"
-                                                                        value={formData.date}
-                                                                        onChange={handleChange}
-                                                                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                                                    />
-                                                                </div>
-
-                                                                <div>
-                                                                    <label htmlFor="duration" className="block text-sm font-medium text-gray-300 mb-2">
-                                                                        Duration (hours)
-                                                                    </label>
-                                                                    <input
-                                                                        type="number"
-                                                                        id="duration"
-                                                                        value={formData.duration}
-                                                                        onChange={handleChange}
-                                                                        min="1"
-                                                                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                                                        placeholder="e.g., 2"
-                                                                    />
-                                                                </div>
-
-                                                                <div>
-                                                                    <label htmlFor="problems" className="block text-sm font-medium text-gray-300 mb-2">
-                                                                        Number of Problems
-                                                                    </label>
-                                                                    <input
-                                                                        type="number"
-                                                                        id="problems"
-                                                                        value={formData.problems}
-                                                                        onChange={handleChange}
-                                                                        min="1"
-                                                                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                                                        placeholder="e.g., 5"
-                                                                    />
-                                                                </div>
-
-                                                                <div>
-                                                                    <label htmlFor="level" className="block text-sm font-medium text-gray-300 mb-2">
-                                                                        Level
+                                                                    <label htmlFor="id" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                        Contest ID - Name
                                                                     </label>
                                                                     <input
                                                                         type="text"
-                                                                        id="level"
-                                                                        value={formData.level}
+                                                                        id="id"
+                                                                        value={formData.id}
                                                                         onChange={handleChange}
+                                                                        required
                                                                         className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
-                                                                        placeholder="e.g., Open for all..."
+                                                                        placeholder="Enter unique contest ID-NAME"
+                                                                    />
+                                                                </div>
+
+                                                                <div>
+                                                                    <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                        Contest Title *
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        id="title"
+                                                                        value={formData.title}
+                                                                        onChange={handleChange}
+                                                                        required
+                                                                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                                                                        placeholder="Enter contest title"
                                                                     />
                                                                 </div>
                                                             </div>
-                                                        </div>
 
-                                                        {/* Submit Button */}
+                                                            <div>
+                                                                <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                    Contest Description
+                                                                </label>
+                                                                <textarea
+                                                                    id="description"
+                                                                    rows="4"
+                                                                    value={formData.description}
+                                                                    onChange={handleChange}
+                                                                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                                                                    placeholder="Describe the contest objectives and rules..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                                                    <div className="space-y-6">
+                                                                                        <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
+                                                                                            Contest Details
+                                                                                        </h2>
+                                                                                        
+                                                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                                                            <div>
+                                                                                                <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                                                    Contest Date
+                                                                                                </label>
+                                                                                                <input
+                                                                                                    type="date"
+                                                                                                    id="date"
+                                                                                                    value={formData.date}
+                                                                                                    onChange={handleChange}
+                                                                                                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                                                                                                />
+                                                                                            </div>
+
+                                                                                            <div>
+                                                                                                <label htmlFor="duration" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                                                    Duration (hours)
+                                                                                                </label>
+                                                                                                <input
+                                                                                                    type="string"
+                                                                                                    id="duration"
+                                                                                                    value={formData.duration}
+                                                                                                    onChange={handleChange}
+                                                                                                    min="1"
+                                                                                                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                                                                                                    placeholder="e.g., 2"
+                                                                                                />
+                                                                                            </div>
+
+                                                                                            <div>
+                                                                                                <label htmlFor="problems" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                                                    Number of Problems
+                                                                                                </label>
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    id="problems"
+                                                                                                    value={formData.problems}
+                                                                                                    onChange={handleChange}
+                                                                                                    min="1"
+                                                                                                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                                                                                                    placeholder="e.g., 5"
+                                                                                                />
+                                                                                            </div>
+
+                                                                                            <div>
+                                                                                                <label htmlFor="level" className="block text-sm font-medium text-gray-300 mb-2">
+                                                                                                    Level
+                                                                                                </label>
+                                                                                                <input
+                                                                                                    type="text"
+                                                                                                    id="level"
+                                                                                                    value={formData.level}
+                                                                                                    onChange={handleChange}
+                                                                                                    className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
+                                                                                                    placeholder="e.g., Open for all..."
+                                                                                                />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {/* Submit Button */}
                             <div className="pt-8">
                                 <button
                                     type="submit"
