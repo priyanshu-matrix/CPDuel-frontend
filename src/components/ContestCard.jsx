@@ -196,8 +196,17 @@ const ContestCard = ({ contest }) => {
 
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg max-w-xl mx-auto hover:border-amber-400 transition-all">
-      <h2 className="text-2xl font-bold text-amber-400 mb-2">
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg max-w-xl mx-auto hover:border-amber-400 transition-all relative">
+      {isAdmin && (
+        <button
+          onClick={() => navigate(`/contest/problemlist/${contest._id}`)}
+          className="absolute top-4 right-4 bg-blue-500 text-white font-semibold px-3 py-1 rounded-md hover:bg-blue-400 transition text-sm"
+          title="Manage Problems"
+        >
+          Manage Problems
+        </button>
+      )}
+      <h2 className="text-2xl font-bold text-amber-400 mb-2 mt-8"> {/* Added mt-8 for spacing if button is present */}
         {contest.title}
       </h2>
       <div className="text-gray-300 mb-3">
