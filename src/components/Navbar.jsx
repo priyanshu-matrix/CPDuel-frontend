@@ -135,6 +135,15 @@ const Navbar = () => {
                 Add Contest
               </Link>
             )}
+            { isAdmin && (
+              <Link
+                to="/createproblems"
+                className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2 px-4 rounded mt-4 block text-center"
+                onClick={toggleProfile}
+              >
+                Create Problems
+              </Link>
+            )}
             <button
               onClick={() => {
                 logout();

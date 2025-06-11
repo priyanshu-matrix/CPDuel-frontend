@@ -6,7 +6,7 @@ const problems = [
         title: "1. Two Sum",
         difficulty: "Easy",
         description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
-        $$ \\textbf{Sum} = \\sum_{i=0}^{n-1} nums[i] = target $$
+        $$ \\sin^{2}(\\alpha) + \\cos^{2}(\\alpha) = 1 $$
         `,
         examples: [
             {
@@ -21,9 +21,9 @@ const problems = [
             }
         ],
         constraints: [
-            "$2 \\leq$ nums.length $\\leq 10⁴$",
-            "$-10^{9} \\leq$ nums[i] $\\leq 10⁹$",
-            "$-10⁹ \\leq$ target $\\leq 10⁹$"
+            "$2 \\leq$ nums.length $\\leq 10^{4}$",
+            "$-10^{9} \\leq$ nums[i] $\\leq 10^{9}$",
+            "$-10{9} \\leq$ target $\\leq 10^{9}$"
         ]
     },
     {
@@ -126,7 +126,7 @@ const problems = [
 // Function to get a random problem
 const getRandomProblem = () => {
     const randomIndex = Math.floor(Math.random() * problems.length);
-    return problems[randomIndex];
+    return problems[0];
 };
 
 export default getRandomProblem;

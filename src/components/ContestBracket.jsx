@@ -7,7 +7,6 @@ const TROPHY_IMG = "https://img.icons8.com/fluency/96/trophy.png";
 
 const ContestBracket = () => {
   const { contestId } = useParams();
-  const {contestName} = useParams();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [users, setUsers] = useState([]);
@@ -508,7 +507,7 @@ const ContestBracket = () => {
         </button>
         <button
           className="bg-amber-400 text-gray-900 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-amber-300 transition text-lg"
-          onClick={() => navigate(`/contest/${contestId}/start`)}
+          onClick={() => navigate(`/contest/begin/${contestId}`)}
         >
           Start
         </button>

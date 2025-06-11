@@ -13,9 +13,12 @@ import RangeQuerySheetPage from "./components/RangeQuerySheetPage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./components/login";
+import ContestList from "./components/ContestList";
 import Signup from "./components/Signup";
+
 import { ToastContainer } from "react-toastify";
 import CreateContest from "./components/CreateContest";
+import CreateProblem from "./components/CreateProblem";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -87,6 +90,20 @@ function App() {
           }
         />
         <Route
+          path="/createproblems"
+          element={
+            token ? (
+              <>
+                <Navbar />
+                <CreateProblem />
+                <Footer />
+              </>
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route
           path="/contest/:contestId"
           element={
             token ? (
@@ -115,7 +132,21 @@ function App() {
           }
         />
         <Route
-          path="/contest/:contestId/start"
+          path="/contest/problemlist/:contestId"
+          element={
+            token ? (
+              <>
+                <Navbar />
+                <ContestList />
+                <Footer />
+              </>
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route
+          path="/contest/begin/:contestId"
           element={
             token ? (
               <>
