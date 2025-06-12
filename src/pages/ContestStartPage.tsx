@@ -109,7 +109,15 @@ const ContestStartPage = () => {
                     return;
                 }
                 
-                const { matchId, userId, problemId } = matchInfoResponse.data.matchInfo;
+                const { matchId, userId, problemId, user2 } = matchInfoResponse.data.matchInfo;
+                
+                // Check if user gets a BYE (no problem assigned and user2 is "Bye")
+                if (!problemId || user2 === "Bye") {
+                    setError("You are promoted as BYE. Please wait until the next round starts.");
+                    setLoading(false);
+                    return;
+                }
+                
                 setMatchDetails({ matchId, userId }); // Optional: store if needed elsewhere
 
                 // Step 2: Fetch Problem Data using obtained matchId and userId
@@ -238,18 +246,29 @@ const ContestStartPage = () => {
             });
 
             if (result.message) {
-                output.push({ text: `Message: ${result.message}`, type: "info" });
+                let messageType = "info";
+                const lowerCaseMessage = result.message.toLowerCase();
+                if (lowerCaseMessage.includes("all test cases passed successfully") || 
+                    (result.overallStatus?.toLowerCase().includes("accept") && lowerCaseMessage.includes("success"))) {
+                    messageType = "success";
+                } else if (lowerCaseMessage.includes("error") || lowerCaseMessage.includes("fail")) {
+                    // Keep as error if overallStatus is also error, otherwise could be info
+                    if (result.overallStatus && !result.overallStatus.toLowerCase().includes("accept")) {
+                        messageType = "error";
+                    }
+                }
+                output.push({ text: `Message: ${result.message}`, type: messageType });
             }
 
             if (result.details) {
                 const details = result.details;
-                if (details.status && details.status.description) {
-                    const executionStatusText = `Execution Status: ${details.status.description}`;
-                    output.push({ 
-                        text: executionStatusText, 
-                        type: details.status.description.toLowerCase().includes("accept") ? "success" : "error" 
-                    });
-                }
+                // if (details.status && details.status.description) { // Removed Execution Status
+                //     const executionStatusText = `Execution Status: ${details.status.description}`;
+                //     output.push({ 
+                //         text: executionStatusText, 
+                //         type: details.status.description.toLowerCase().includes("accept") ? "success" : "error" 
+                //     });
+                // }
                 if (details.time) output.push({ text: `Execution Time: ${details.time}s`, type: "info" });
                 if (details.memory) output.push({ text: `Memory Used: ${details.memory / 1024}KB`, type: "info" }); // Assuming memory is in bytes
 
@@ -347,18 +366,33 @@ const ContestStartPage = () => {
             });
             
             if (result.message) {
-                output.push({ text: `Message: ${result.message}`, type: "info" });
+                let messageType = "info";
+                const lowerCaseMessage = result.message.toLowerCase();
+                 if (lowerCaseMessage.includes("all test cases passed successfully") || 
+                    (result.overallStatus?.toLowerCase().includes("accept") && (lowerCaseMessage.includes("success") || lowerCaseMessage.includes("accept")) )) {
+                    messageType = "success";
+                } else if (lowerCaseMessage.includes("error") || lowerCaseMessage.includes("fail") || (result.overallStatus && !result.overallStatus.toLowerCase().includes("accept"))) {
+                     // If overallStatus is not accepted, and there's a message, it's likely related to the failure.
+                    messageType = "error";
+                }
+                // Ensure if overall is success, message reflecting that is also success
+                if (result.overallStatus?.toLowerCase().includes("accept") && (lowerCaseMessage.includes("success") || lowerCaseMessage.includes("accept"))) {
+                    messageType = "success";
+                }
+
+
+                output.push({ text: `Message: ${result.message}`, type: messageType });
             }
 
             if (result.details) {
                 const details = result.details;
-                if (details.status && details.status.description) {
-                    const executionStatusText = `Execution Status: ${details.status.description}`;
-                    output.push({ 
-                        text: executionStatusText, 
-                        type: details.status.description.toLowerCase().includes("accept") ? "success" : "error" 
-                    });
-                }
+                // if (details.status && details.status.description) { // Removed Execution Status
+                //     const executionStatusText = `Execution Status: ${details.status.description}`;
+                //     output.push({ 
+                //         text: executionStatusText, 
+                //         type: details.status.description.toLowerCase().includes("accept") ? "success" : "error" 
+                //     });
+                // }
                 if (details.time) output.push({ text: `Execution Time: ${details.time}s`, type: "info" });
                 if (details.memory) output.push({ text: `Memory Used: ${details.memory / 1024}KB`, type: "info" }); // Assuming memory is in bytes
 
