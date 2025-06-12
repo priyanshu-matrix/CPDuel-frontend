@@ -14,8 +14,8 @@ const CreateProblem = () => {
         memoryLimit: 256,
         tags: '',
         points: 100,
-        hiddenTestCases: '',
     });
+    const [testCasesZipFile, setTestCasesZipFile] = useState(null);
 
     const handleChange = (e) => {
         const { id, value, type } = e.target;
@@ -23,6 +23,10 @@ const CreateProblem = () => {
             ...prevData,
             [id]: type === 'number' ? Number(value) : value,
         }));
+    };
+
+    const handleFileChange = (e) => {
+        setTestCasesZipFile(e.target.files[0]);
     };
 
     const handleSubmit = async (e) => {
@@ -33,45 +37,49 @@ const CreateProblem = () => {
             return;
         }
 
-        try {
-            let parsedExamples = [];
-            let parsedConstraints = [];
-            let parsedTags = [];
-            let parsedHiddenTestCases = [];
-
-            try {
-                if (formData.examples.trim()) {
-                    parsedExamples = JSON.parse(formData.examples);
+        // Validate JSON format for relevant fields if they are not empty
+        const fieldsToValidateAsJson = ['examples', 'constraints', 'tags'];
+        for (const field of fieldsToValidateAsJson) {
+            if (formData[field] && formData[field].trim()) {
+                try {
+                    JSON.parse(formData[field].trim());
+                } catch (parseError) {
+                    toast.error(`Invalid JSON format in ${field}. Please check your input.`);
+                    return;
                 }
-                if (formData.constraints.trim()) {
-                    parsedConstraints = JSON.parse(formData.constraints);
-                }
-                if (formData.tags.trim()) {
-                    parsedTags = JSON.parse(formData.tags);
-                }
-                if (formData.hiddenTestCases.trim()) {
-                    parsedHiddenTestCases = JSON.parse(formData.hiddenTestCases);
-                }
-            } catch (parseError) {
-                toast.error('Invalid JSON format. Please check your input.');
-                return;
             }
+        }
 
-            const problemData = {
-                ...formData,
-                examples: parsedExamples,
-                constraints: parsedConstraints,
-                tags: parsedTags,
-                hiddenTestCases: parsedHiddenTestCases,
-            };
+        const payload = new FormData();
+        // Append all form data fields
+        for (const key in formData) {
+            if (fieldsToValidateAsJson.includes(key)) {
+                const value = formData[key].trim();
+                if (value) {
+                    // Send the validated JSON string
+                    payload.append(key, value);
+                } else {
+                    // If field is empty, send string representation of an empty array
+                    payload.append(key, "[]");
+                }
+            } else {
+                payload.append(key, formData[key]);
+            }
+        }
 
+        // Append the test case file if selected
+        if (testCasesZipFile) {
+            payload.append('testCasesFile', testCasesZipFile);
+        }
+
+        try {
             const response = await fetch('http://localhost:3000/api/problems/add', {
                 method: 'POST',
                 headers: {
-                    "Content-Type": "application/json",
+                    // "Content-Type": "application/json", // Removed for FormData
                     "Authorization": `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify(problemData),
+                body: payload, // Use FormData object
             });
 
             if (response.ok) {
@@ -90,8 +98,13 @@ const CreateProblem = () => {
                     memoryLimit: 256,
                     tags: '',
                     points: 100,
-                    hiddenTestCases: '',
                 });
+                setTestCasesZipFile(null);
+                // Reset file input element
+                const fileInput = document.getElementById('testCasesZipFile');
+                if (fileInput) {
+                    fileInput.value = null;
+                }
             } else {
                 const errorData = await response.json();
                 console.error("Error creating problem:", errorData);
@@ -319,17 +332,17 @@ const CreateProblem = () => {
                                 </h2>
 
                                 <div>
-                                    <label htmlFor="hiddenTestCases" className="block text-sm font-medium text-gray-300 mb-2">
-                                        Hidden Test Cases (JSON format)
+                                    <label htmlFor="testCasesZipFile" className="block text-sm font-medium text-gray-300 mb-2">
+                                        Test Cases (ZIP file)
                                     </label>
-                                    <textarea
-                                        id="hiddenTestCases"
-                                        rows="6"
-                                        value={formData.hiddenTestCases}
-                                        onChange={handleChange}
-                                        placeholder='[{"input": "10 20", "output": "30"}]'
-                                        className="w-full px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 font-mono text-sm"
+                                    <input
+                                        type="file"
+                                        id="testCasesZipFile"
+                                        onChange={handleFileChange}
+                                        accept=".zip"
+                                        className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500/50 bg-slate-700/50 border border-slate-600 rounded-lg"
                                     />
+                                    {testCasesZipFile && <p className="text-xs text-gray-400 mt-1">Selected: {testCasesZipFile.name}</p>}
                                 </div>
                             </div>
 
