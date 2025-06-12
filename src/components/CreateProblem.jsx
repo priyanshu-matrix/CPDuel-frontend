@@ -27,7 +27,7 @@ const CreateProblem = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!formData.title || !formData.description || !formData.difficulty) {
             toast.error('Title, Description, and Difficulty are required.');
             return;
@@ -56,7 +56,7 @@ const CreateProblem = () => {
                 toast.error('Invalid JSON format. Please check your input.');
                 return;
             }
-            
+
             const problemData = {
                 ...formData,
                 examples: parsedExamples,
@@ -125,7 +125,7 @@ const CreateProblem = () => {
                                 <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
                                     Basic Information
                                 </h2>
-                                
+
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div>
                                         <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
@@ -180,7 +180,7 @@ const CreateProblem = () => {
                                 <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
                                     Format Specifications
                                 </h2>
-                                
+
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <div>
                                         <label htmlFor="inputFormat" className="block text-sm font-medium text-gray-300 mb-2">
@@ -217,7 +217,7 @@ const CreateProblem = () => {
                                 <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
                                     Examples & Constraints
                                 </h2>
-                                
+
                                 <div>
                                     <label htmlFor="examples" className="block text-sm font-medium text-gray-300 mb-2">
                                         Examples (JSON format)
@@ -252,7 +252,7 @@ const CreateProblem = () => {
                                 <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
                                     Technical Settings
                                 </h2>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <div>
                                         <label htmlFor="timeLimit" className="block text-sm font-medium text-gray-300 mb-2">
@@ -317,7 +317,7 @@ const CreateProblem = () => {
                                 <h2 className="text-2xl font-semibold text-purple-400 border-b border-purple-400/30 pb-2">
                                     Test Cases
                                 </h2>
-                                
+
                                 <div>
                                     <label htmlFor="hiddenTestCases" className="block text-sm font-medium text-gray-300 mb-2">
                                         Hidden Test Cases (JSON format)
