@@ -1,5 +1,5 @@
 import React from "react";
-import ContestBracket from "./ContestBracket";
+import ContestBracket from "../components/ContestBracket";
 
 const ContestBracketPage = () => <ContestBracket />;
 

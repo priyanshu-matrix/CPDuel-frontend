@@ -1,27 +1,32 @@
-import { useState } from 'react';
-import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from './firebase/firebase';
-import './styles/login.css';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState } from "react";
+import {
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail,
+    signInWithPopup,
+    GoogleAuthProvider,
+} from "firebase/auth";
+import { auth } from "../utils/firebase/firebase";
+import "../styles/login.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        rememberMe: false
+        email: "",
+        password: "",
+        rememberMe: false,
     });
-    const [resetEmail, setResetEmail] = useState('');
-    const [resetError, setResetError] = useState('');
+    const [resetEmail, setResetEmail] = useState("");
+    const [resetError, setResetError] = useState("");
     const [showResetForm, setShowResetForm] = useState(false);
     const [resetSuccess, setResetSuccess] = useState(false);
     const [isPasswordReset, setIsPasswordReset] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: type === "checkbox" ? checked : value,
         }));
     };
 
@@ -31,14 +36,14 @@ const Login = () => {
             await signInWithEmailAndPassword(auth, formData.email, formData.password);
             const user = auth.currentUser;
             console.log("User logged in successfully:", user);
-            toast.success('Logged in successfully!');
+            toast.success("Logged in successfully!");
 
             // Get the Firebase ID token
             const token = await user.getIdToken();
 
             // Send the token to your backend for verification and to retrieve user roles/permissions
-            const response = await fetch('http://localhost:3000/api/users/login', {
-                method: 'POST',
+            const response = await fetch("http://localhost:3000/api/users/login", {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -48,19 +53,16 @@ const Login = () => {
             const data = await response.json();
             if (data.isAdmin) {
                 // Redirect to admin panel
-                localStorage.setItem('token', token);
+                localStorage.setItem("token", token);
                 window.location.href = "/home";
             } else {
                 // Regular user page
-                localStorage.setItem('token', token);
+                localStorage.setItem("token", token);
                 window.location.href = "/home";
             }
-
-
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error logging in:", error);
-            toast.error('Invalid credentials. Please try again.');
+            toast.error("Invalid credentials. Please try again.");
             // Handle error appropriately, e.g., show a notification
         }
     };
@@ -70,15 +72,15 @@ const Login = () => {
         try {
             await sendPasswordResetEmail(auth, resetEmail);
             setIsPasswordReset(true);
-            setResetError('');
+            setResetError("");
             setResetSuccess(true);
-            toast.success('Password reset email sent! Check your inbox.');
+            toast.success("Password reset email sent! Check your inbox.");
         } catch (error) {
             console.error("Error sending password reset email:", error);
             setResetError(error.message);
             setIsPasswordReset(false);
             setResetSuccess(false);
-            toast.error('Failed to send password reset email.');
+            toast.error("Failed to send password reset email.");
         }
     };
 
@@ -88,9 +90,9 @@ const Login = () => {
 
     const closeResetForm = () => {
         setShowResetForm(false);
-        setResetEmail('');
+        setResetEmail("");
         setIsPasswordReset(false);
-        setResetError('');
+        setResetError("");
         setResetSuccess(false);
     };
 
@@ -100,14 +102,14 @@ const Login = () => {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             console.log("User logged in successfully with Google:", user);
-            toast.success('Logged in successfully with Google!');
+            toast.success("Logged in successfully with Google!");
 
             // Get the Firebase ID token
             const token = await user.getIdToken();
 
             // Send the token to your backend for verification and to retrieve user roles/permissions
-            const response = await fetch('http://localhost:3000/api/users/signup', {
-                method: 'POST',
+            const response = await fetch("http://localhost:3000/api/users/signup", {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -115,32 +117,32 @@ const Login = () => {
                 body: JSON.stringify({
                     uid: user.uid,
                     email: user.email,
-                    name: user.displayName
-                })
+                    name: user.displayName,
+                }),
             });
 
             const data = await response.json();
             if (data.isAdmin) {
                 // Redirect to admin panel
-                localStorage.setItem('token', token);
-                localStorage.setItem('isAdmin', true);
+                localStorage.setItem("token", token);
+                localStorage.setItem("isAdmin", true);
                 window.location.href = "/home";
             } else {
                 // Regular user page
-                localStorage.setItem('token', token);
+                localStorage.setItem("token", token);
                 window.location.href = "/home";
             }
         } catch (error) {
             console.error("Error logging in with Google:", error);
-            toast.error('Failed to login with Google.');
+            toast.error("Failed to login with Google.");
             // Handle error appropriately, e.g., show a notification
         }
     };
 
-
     return (
         <div className="login-container">
-            <ToastContainer position="top-right"
+            <ToastContainer
+                position="top-right"
                 autoClose={5000}
                 hideProgressBar={false}
                 newestOnTop={false}
@@ -149,7 +151,8 @@ const Login = () => {
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                theme="light" />
+                theme="light"
+            />
             <div className="login-card">
                 <div className="login-header">
                     <h1 className="text-3xl font-bold">CP Duel</h1>
@@ -184,7 +187,11 @@ const Login = () => {
                     </div>
 
                     <div className="form-options">
-                        <button type="button" className="forgot-password" onClick={openResetForm}>
+                        <button
+                            type="button"
+                            className="forgot-password"
+                            onClick={openResetForm}
+                        >
                             Forgot password?
                         </button>
                     </div>
@@ -195,47 +202,80 @@ const Login = () => {
                 </form>
 
                 <div className="login-footer">
-                    <p>Don't have an account? <a href="/sign">Sign up</a></p>
+                    <p>
+                        Don't have an account? <a href="/sign">Sign up</a>
+                    </p>
 
                     <div className="social-login">
                         <p>Or continue with</p>
                         <div className="social-buttons">
-                            <button className="social-btn google" onClick={signInWithGoogle}>Google</button>
+                            <button className="social-btn google" onClick={signInWithGoogle}>
+                                Google
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             {showResetForm && (
-                <div className="modal" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backdropFilter: 'blur(5px)' // Added backdrop-filter for blur effect
-                }}>
-                    <div className="modal-content" style={{
-                        backgroundColor: '#fff',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        width: '400px',
-                        position: 'relative'
-                    }}>
-                        <span className="close" onClick={closeResetForm} style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '10px',
-                            fontSize: '20px',
-                            cursor: 'pointer'
-                        }}>&times;</span>
-                        <h2 style={{ fontSize: '20px', marginBottom: '15px', textAlign: 'center' }}>Reset Password</h2>
+                <div
+                    className="modal"
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backdropFilter: "blur(5px)", // Added backdrop-filter for blur effect
+                    }}
+                >
+                    <div
+                        className="modal-content"
+                        style={{
+                            backgroundColor: "#fff",
+                            padding: "20px",
+                            borderRadius: "8px",
+                            width: "400px",
+                            position: "relative",
+                        }}
+                    >
+                        <span
+                            className="close"
+                            onClick={closeResetForm}
+                            style={{
+                                position: "absolute",
+                                top: "10px",
+                                right: "10px",
+                                fontSize: "20px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            &times;
+                        </span>
+                        <h2
+                            style={{
+                                fontSize: "20px",
+                                marginBottom: "15px",
+                                textAlign: "center",
+                            }}
+                        >
+                            Reset Password
+                        </h2>
                         <form onSubmit={handleResetPassword}>
-                            <label htmlFor="resetEmail" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
+                            <label
+                                htmlFor="resetEmail"
+                                style={{
+                                    display: "block",
+                                    marginBottom: "5px",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                Email:
+                            </label>
                             <input
                                 type="email"
                                 id="resetEmail"
@@ -243,16 +283,45 @@ const Login = () => {
                                 onChange={(e) => setResetEmail(e.target.value)}
                                 placeholder="Enter your email"
                                 required
-                                style={{ width: '100%', padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ddd', marginBottom: '15px' }}
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    fontSize: "16px",
+                                    borderRadius: "4px",
+                                    border: "1px solid #ddd",
+                                    marginBottom: "15px",
+                                }}
                             />
-                            <button type="submit" style={{ width: '100%', backgroundColor: '#007bff', color: '#fff', padding: '12px', fontSize: '16px', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Reset Password</button>
+                            <button
+                                type="submit"
+                                style={{
+                                    width: "100%",
+                                    backgroundColor: "#007bff",
+                                    color: "#fff",
+                                    padding: "12px",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Reset Password
+                            </button>
                         </form>
                         {resetSuccess && (
-                            <div className="success-popup" style={{ marginTop: '10px', color: 'green' }}>
+                            <div
+                                className="success-popup"
+                                style={{ marginTop: "10px", color: "green" }}
+                            >
                                 Password reset email sent! Check your inbox.
                             </div>
                         )}
-                        {resetError && <p style={{ color: 'red', marginTop: '10px' }}>Error: {resetError}</p>}
+                        {resetError && (
+                            <p style={{ color: "red", marginTop: "10px" }}>
+                                Error: {resetError}
+                            </p>
+                        )}
                     </div>
                 </div>
             )}
