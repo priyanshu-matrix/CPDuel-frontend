@@ -57,7 +57,7 @@ const ContestStartPage = () => {
 
     const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes
     // after
-    const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+    const [consoleOutput, setConsoleOutput] = useState<Array<{ text: string; type: string }>>([]);
     const [language_id, setLanguage_id] = useState(54);
     const [userCode, setUserCode] = useState(
         `#include <bits/stdc++.h>\nusing namespace std;\nint main() {\n    // Your code here\n    return 0;\n}`
@@ -202,50 +202,221 @@ const ContestStartPage = () => {
 
     const handleRun = async () => {
         setIsRunning(true);
-        setConsoleOutput(["Running code..."]);
+        setConsoleOutput([{ text: "Running code...", type: "info" }]);
+
+        if (!problemData || !matchDetails) {
+            setConsoleOutput([{ text: "Error: Problem data or user details not loaded.", type: "error" }]);
+            setIsRunning(false);
+            return;
+        }
 
         try {
-            // Simulate API call for code execution
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // Mock response - replace with actual API call
-            const mockResult = {
-                status: "Accepted",
-                stdout: "Hello World!\n",
-                stderr: null,
-                compile_output: null,
-                time: "0.02",
-                memory: 2048,
+            const payload = {
+                language_id: language_id,
+                code: userCode,
+                question_id: problemData._id,
+                userID: matchDetails.userId,
+                runSampleOnly: true,
             };
 
-            const output: string[] = [];
-            output.push(`Status: ${mockResult.status}`);
-            output.push(`Execution Time: ${mockResult.time}s`);
-            output.push(`Memory Used: ${mockResult.memory}KB`);
-            output.push("--- Output ---");
-            if (mockResult.stdout) {
-                output.push(mockResult.stdout);
+            const token = localStorage.getItem("token");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const response = await axios.post(
+                `http://localhost:3000/api/compiler/submitCode`,
+                payload,
+                { headers }
+            );
+
+            const result = response.data; 
+            const output: Array<{ text: string; type: string }> = [];
+
+            const overallStatusText = `Overall Status: ${result.overallStatus || "Processing..."}`;
+            output.push({ 
+                text: overallStatusText, 
+                type: result.overallStatus?.toLowerCase().includes("accept") ? "success" : (result.overallStatus ? "error" : "info") 
+            });
+
+            if (result.message) {
+                output.push({ text: `Message: ${result.message}`, type: "info" });
             }
-            if (mockResult.stderr) {
-                output.push("--- Error ---");
-                output.push(mockResult.stderr);
+
+            if (result.details) {
+                const details = result.details;
+                if (details.status && details.status.description) {
+                    const executionStatusText = `Execution Status: ${details.status.description}`;
+                    output.push({ 
+                        text: executionStatusText, 
+                        type: details.status.description.toLowerCase().includes("accept") ? "success" : "error" 
+                    });
+                }
+                if (details.time) output.push({ text: `Execution Time: ${details.time}s`, type: "info" });
+                if (details.memory) output.push({ text: `Memory Used: ${details.memory / 1024}KB`, type: "info" }); // Assuming memory is in bytes
+
+                if (details.stderr) {
+                    output.push({ text: "--- Error ---", type: "error" });
+                    try {
+                        output.push({ text: atob(details.stderr), type: "error" });
+                    } catch (e) {
+                        output.push({ text: "Error decoding stderr: " + details.stderr, type: "error" });
+                    }
+                }
+                if (details.compile_output) {
+                    output.push({ text: "--- Compile Output ---", type: "info" });
+                    try {
+                        output.push({ text: atob(details.compile_output), type: "info" });
+                    } catch (e) {
+                        output.push({ text: "Error decoding compile_output: " + details.compile_output, type: "error" });
+                    }
+                }
             }
-            if (mockResult.compile_output) {
-                output.push("--- Compile Output ---");
-                output.push(mockResult.compile_output);
+            
+            // Handle detailed test case results if available (for runSampleOnly: true and if backend provides it)
+            // This part might need adjustment based on actual API response for runSampleOnly with test cases
+            if (result.testCaseResults && result.testCaseResults.length > 0) {
+                output.push({ text: "--- Test Case Results ---", type: "info" });
+                result.testCaseResults.forEach((tc, index) => {
+                    const statusText = `Test Case ${index + 1}: ${tc.status}`;
+                    output.push({ 
+                        text: statusText, 
+                        type: tc.status.toLowerCase().includes("accept") ? "success" : "error" 
+                    });
+                    if(tc.expectedOutput) output.push({ text: `  Expected: ${atob(tc.expectedOutput)}`, type: "info" });
+                    if(tc.stderr) output.push({ text: `  Error: ${atob(tc.stderr)}`, type: "error" });
+                });
             }
 
             setConsoleOutput(output);
         } catch (error) {
-            setConsoleOutput(["Error: Failed to execute code", error.message]);
+            console.error("Error executing code:", error);
+            const errorMessages: Array<{ text: string; type: string }> = [];
+            if (axios.isAxiosError(error) && error.response) {
+                errorMessages.push({
+                    text: `Error: Failed to execute code - ${error.response.data.message || error.message}`,
+                    type: "error"
+                });
+                errorMessages.push({
+                    text: `Details: ${JSON.stringify(error.response.data)}`,
+                    type: "error"
+                });
+            } else {
+                errorMessages.push({ text: "Error: Failed to execute code", type: "error" });
+                errorMessages.push({ text: error.message, type: "error" });
+            }
+            setConsoleOutput(errorMessages);
         } finally {
             setIsRunning(false);
         }
     };
 
-    const handleSubmit = () => {
-        setConsoleOutput(["Submitting solution..."]);
-        // Add submit logic here
+    const handleSubmit = async () => {
+        setIsRunning(true); // Use isRunning to disable submit button too
+        setConsoleOutput([{ text: "Submitting solution...", type: "info" }]);
+
+        if (!problemData || !matchDetails) {
+            setConsoleOutput([{ text: "Error: Problem data or user details not loaded.", type: "error" }]);
+            setIsRunning(false);
+            return;
+        }
+
+        try {
+            const payload = {
+                language_id: language_id,
+                code: userCode,
+                question_id: problemData._id,
+                userID: matchDetails.userId,
+                runSampleOnly: false,
+            };
+
+            const token = localStorage.getItem("token");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const response = await axios.post(
+                `http://localhost:3000/api/compiler/submitCode`,
+                payload,
+                { headers }
+            );
+            
+            const result = response.data;
+            const output: Array<{ text: string; type: string }> = [];
+
+            const submissionStatusText = `Submission Status: ${result.overallStatus || "Processing..."}`;
+            output.push({ 
+                text: submissionStatusText, 
+                type: result.overallStatus?.toLowerCase().includes("accept") ? "success" : (result.overallStatus ? "error" : "info")
+            });
+            
+            if (result.message) {
+                output.push({ text: `Message: ${result.message}`, type: "info" });
+            }
+
+            if (result.details) {
+                const details = result.details;
+                if (details.status && details.status.description) {
+                    const executionStatusText = `Execution Status: ${details.status.description}`;
+                    output.push({ 
+                        text: executionStatusText, 
+                        type: details.status.description.toLowerCase().includes("accept") ? "success" : "error" 
+                    });
+                }
+                if (details.time) output.push({ text: `Execution Time: ${details.time}s`, type: "info" });
+                if (details.memory) output.push({ text: `Memory Used: ${details.memory / 1024}KB`, type: "info" }); // Assuming memory is in bytes
+
+                if (details.stderr) {
+                    output.push({ text: "--- Error ---", type: "error" });
+                     try {
+                        output.push({ text: atob(details.stderr), type: "error" });
+                    } catch (e) {
+                        output.push({ text: "Error decoding stderr: " + details.stderr, type: "error" });
+                    }
+                }
+                if (details.compile_output) {
+                    output.push({ text: "--- Compile Output ---", type: "info" });
+                    try {
+                        output.push({ text: atob(details.compile_output), type: "info" });
+                    } catch (e) {
+                        output.push({ text: "Error decoding compile_output: " + details.compile_output, type: "error" });
+                    }
+                }
+            }
+            
+            // This part for submissionDetails might be from an older API or a different flow.
+            // If the new structure with `overallStatus` and `details` is standard, this might not be hit.
+            if (result.submissionDetails) {
+                output.push({ text: `Points Awarded: ${result.submissionDetails.points || 0}`, type: "info" });
+                if (result.submissionDetails.testCaseResults && result.submissionDetails.testCaseResults.length > 0) {
+                    output.push({ text: "--- Test Case Breakdown ---", type: "info" });
+                    result.submissionDetails.testCaseResults.forEach((tc, index) => {
+                        const statusText = `Test Case ${index + 1}: ${tc.status}`;
+                        output.push({ 
+                            text: statusText, 
+                            type: tc.status.toLowerCase().includes("accept") ? "success" : "error" 
+                        });
+                    });
+                }
+            }
+
+            setConsoleOutput(output);
+        } catch (error) {
+            console.error("Error submitting code:", error);
+            const errorMessages: Array<{ text: string; type: string }> = [];
+            if (axios.isAxiosError(error) && error.response) {
+                errorMessages.push({
+                    text: `Error: Failed to submit solution - ${error.response.data.message || error.message}`,
+                    type: "error"
+                });
+                errorMessages.push({
+                    text: `Details: ${JSON.stringify(error.response.data)}`,
+                    type: "error"
+                });
+            } else {
+                errorMessages.push({ text: "Error: Failed to submit solution", type: "error" });
+                errorMessages.push({ text: error.message, type: "error" });
+            }
+            setConsoleOutput(errorMessages);
+        } finally {
+            setIsRunning(false);
+        }
     };
 
     if (loading) {
@@ -533,6 +704,7 @@ const ContestStartPage = () => {
                                     <button
                                         onClick={handleSubmit}
                                         className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 px-6 py-2 rounded-lg text-gray-900 font-semibold transition-all duration-200 hover:scale-105 shadow-lg flex items-center space-x-2"
+                                        disabled={isRunning} // Disable submit button while running/submitting
                                     >
                                         <span>🚀</span>
                                         <span>Submit</span>
@@ -544,9 +716,13 @@ const ContestStartPage = () => {
                                     consoleOutput.map((line, idx) => (
                                         <pre
                                             key={idx}
-                                            className="text-sm font-mono text-gray-300 leading-relaxed mb-1"
+                                            className={`text-sm font-mono leading-relaxed mb-1 ${
+                                                line.type === 'success' ? 'text-green-400' :
+                                                line.type === 'error' ? 'text-red-400' :
+                                                'text-gray-300' // Default for 'info'
+                                            }`}
                                         >
-                                            {line}
+                                            {line.text}
                                         </pre>
                                     ))
                                 ) : (
