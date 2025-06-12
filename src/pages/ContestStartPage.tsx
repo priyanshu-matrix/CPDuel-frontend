@@ -53,6 +53,7 @@ const ContestStartPage = () => {
     const [problemData, setProblemData] = useState<ProblemData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [matchDetails, setMatchDetails] = useState<{ matchId: string; userId: string } | null>(null);
 
     const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes
     // after
@@ -65,7 +66,7 @@ const ContestStartPage = () => {
 
     // Fetch problem data
     useEffect(() => {
-        const fetchProblem = async () => {
+        const fetchUserMatchInfoAndProblem = async () => {
             if (!contestId) {
                 setError("Contest ID is missing.");
                 setLoading(false);
@@ -76,57 +77,100 @@ const ContestStartPage = () => {
                 const token = localStorage.getItem("token");
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-                const response = await axios.get(
-                    `http://localhost:3000/api/contests/getRandomContestProblem/${contestId}`,
+                // Step 0: Fetch User ID first
+                const userInfoResponse = await axios.get(
+                    `http://localhost:3000/api/users/info`,
                     { headers }
                 );
 
-                if (response.data && response.data.problem) {
+                if (!userInfoResponse.data || !userInfoResponse.data.uid) {
+                    setError("Failed to retrieve user information.");
+                    console.error("Unexpected user info response structure:", userInfoResponse.data);
+                    setLoading(false);
+                    return;
+                }
+
+                const Uid = userInfoResponse.data.uid;
+
+                // Step 1: Fetch User Match Info
+                const matchInfoResponse = await axios.post(
+                    `http://localhost:3000/api/contests/getUserMatchInfo`,
+                    { 
+                        ContestID: contestId,
+                        uid : Uid
+                    },
+                    { headers }
+                );
+
+                if (!matchInfoResponse.data || !matchInfoResponse.data.matchInfo) {
+                    setError("Failed to retrieve match details.");
+                    console.error("Unexpected match info response structure:", matchInfoResponse.data);
+                    setLoading(false);
+                    return;
+                }
+                
+                const { matchId, userId, problemId } = matchInfoResponse.data.matchInfo;
+                setMatchDetails({ matchId, userId }); // Optional: store if needed elsewhere
+
+                // Step 2: Fetch Problem Data using obtained matchId and userId
+                const problemResponse = await axios.post(
+                    `http://localhost:3000/api/problems/get`,
+                    { 
+                        id : problemId
+                    },
+                    { headers }
+                );
+
+                if (problemResponse.data && problemResponse.data.problem) {
                     const decodedProblem = {
-                        ...response.data.problem,
-                        title: response.data.problem.title
-                            ? atob(response.data.problem.title)
+                        ...problemResponse.data.problem,
+                        title: problemResponse.data.problem.title
+                            ? atob(problemResponse.data.problem.title)
                             : "",
-                        description: response.data.problem.description
-                            ? atob(response.data.problem.description)
+                        description: problemResponse.data.problem.description
+                            ? atob(problemResponse.data.problem.description)
                             : "",
-                        inputFormat: response.data.problem.inputFormat
-                            ? atob(response.data.problem.inputFormat)
+                        inputFormat: problemResponse.data.problem.inputFormat
+                            ? atob(problemResponse.data.problem.inputFormat)
                             : "",
-                        outputFormat: response.data.problem.outputFormat
-                            ? atob(response.data.problem.outputFormat)
+                        outputFormat: problemResponse.data.problem.outputFormat
+                            ? atob(problemResponse.data.problem.outputFormat)
                             : "",
                         examples:
-                            response.data.problem.examples?.map((ex) => ({
+                            problemResponse.data.problem.examples?.map((ex) => ({
                                 ...ex,
                                 input: ex.input ? atob(ex.input) : "",
                                 output: ex.output ? atob(ex.output) : "",
                                 explanation: ex.explanation ? atob(ex.explanation) : "",
                             })) || [],
                         constraints:
-                            response.data.problem.constraints?.map((constraint) =>
+                            problemResponse.data.problem.constraints?.map((constraint) =>
                                 constraint ? atob(constraint) : ""
                             ) || [],
                         tags:
-                            response.data.problem.tags?.map((tag) =>
+                            problemResponse.data.problem.tags?.map((tag) =>
                                 tag ? atob(tag) : ""
                             ) || [],
                     };
                     setProblemData(decodedProblem);
+                    setError(null);
                 } else {
                     setError("Problem data is not in the expected format.");
-                    console.error("Unexpected response structure:", response.data);
+                    console.error("Unexpected problem response structure:", problemResponse.data);
                 }
-                setError(null);
             } catch (err) {
-                console.error("Error fetching problem data:", err);
-                setError("Failed to load problem. Please try again.");
+                console.error("Error fetching data:", err);
+                if (axios.isAxiosError(err) && err.response) {
+                    setError(`Failed to load data: ${err.response.data.message || err.message}`);
+                } else {
+                    setError("Failed to load data. Please try again.");
+                }
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProblem();
+        fetchUserMatchInfoAndProblem();
     }, [contestId]);
 
     // Timer

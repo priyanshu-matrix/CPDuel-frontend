@@ -248,9 +248,8 @@ const ContestCard = ({ contest }) => {
             ) : (
                 <button
                     className="bg-green-500 text-white font-semibold px-6 py-2 rounded-full transition"
-                    onClick={() => navigate(`/contest/${contest._id}`)}
                 >
-                    View Contest
+                    Loading...
                 </button>
             )}
             {isAdmin && (
