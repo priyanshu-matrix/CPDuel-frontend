@@ -274,9 +274,9 @@ const ContestBracket = () => {
     };
 
     // Helper to get user details from the users list
-    const getUserDetailsById = (userId) => {
-        if (!userId || userId === "Bye") return null;
-        return users.find((u) => u._id === userId);
+    const getUserDetailsByUid = (uid) => {
+        if (!uid || uid === "Bye") return null;
+        return users.find((u) => u.uid === uid); // Changed from u._id to u.uid
     };
 
     // Auto-resolve all matches with random winners
@@ -444,9 +444,9 @@ const ContestBracket = () => {
 
     // Helper function to render a single match for the new match display section
     const renderMatchDisplay = (match) => {
-        const user1 = getUserDetailsById(match.user1);
+        const user1 = getUserDetailsByUid(match.user1); // Changed from getUserDetailsById
         const user2 =
-            match.user2 === "Bye" ? "Bye" : getUserDetailsById(match.user2);
+            match.user2 === "Bye" ? "Bye" : getUserDetailsByUid(match.user2); // Changed from getUserDetailsById
 
         const user1Name = user1 ? user1.name : match.user1 ? "Player 1" : "N/A";
         const user2Name = user2 === "Bye" ? "BYE" : user2 ? user2.name : "N/A";
@@ -738,7 +738,11 @@ const ContestBracket = () => {
                 )}
 
                 {matches.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div
+                        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${
+                            matches.length > 6 ? "max-h-[70vh] overflow-y-auto" : ""
+                        }`}
+                    >
                         {matches.map((match) => renderMatchDisplay(match))}
                     </div>
                 )}
