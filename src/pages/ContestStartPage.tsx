@@ -4,6 +4,8 @@ import MonacoEditor from "react-monaco-editor";
 import "katex/dist/katex.min.css";
 import { InlineMath, BlockMath } from "react-katex";
 import axios from "axios";
+import io from "socket.io-client";
+import { toast } from "react-toastify";
 
 // Define an interface for the problem data structure
 interface ProblemExample {
@@ -54,6 +56,11 @@ const ContestStartPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [matchDetails, setMatchDetails] = useState<{ matchId: string; userId: string } | null>(null);
+    const [socket, setSocket] = useState<any>(null);
+    const [matchUpdateMessage, setMatchUpdateMessage] = useState<string | null>(null);
+    const [socketConnected, setSocketConnected] = useState(false);
+    const [matchResult, setMatchResult] = useState<'won' | 'lost' | null>(null);
+    const [showMatchOverlay, setShowMatchOverlay] = useState(false);
 
     const [timeLeft, setTimeLeft] = useState(1800); // 30 minutes
     // after
@@ -214,6 +221,153 @@ const ContestStartPage = () => {
         }, 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Socket connection and match update listener
+    useEffect(() => {
+        if (!matchDetails?.userId) return;
+
+        // Establish socket connection
+        const SERVER_URL = 'http://localhost:3000'; // Replace with your actual server URL
+        const socketConnection = io(SERVER_URL);
+        setSocket(socketConnection);
+
+        // Handle connection events
+        socketConnection.on('connect', () => {
+            console.log('Successfully connected to the socket server with ID:', socketConnection.id);
+            setSocketConnected(true);
+            
+            // Join user-specific room after connecting
+            const userId = matchDetails.userId;
+            if (userId) {
+                socketConnection.emit('joinUserRoom', userId);
+                console.log(`Attempting to join room for user: ${userId}`);
+            } else {
+                console.error('User ID is not available. Cannot join user room.');
+            }
+        });
+
+        socketConnection.on('disconnect', (reason) => {
+            console.log('Disconnected from socket server:', reason);
+            setSocketConnected(false);
+        });
+
+        socketConnection.on('connect_error', (error) => {
+            console.error('Socket connection error:', error);
+            setSocketConnected(false);
+        });
+
+        // Listen for match updates
+        socketConnection.on('matchUpdate', (data) => {
+            console.log('Match Update Received:', data);
+            
+            if (data.status === 'won') {
+                // Fetch opponent name
+                const fetchOpponentName = async () => {
+                    try {
+                        const token = localStorage.getItem("token");
+                        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                        
+                        const response = await axios.post(
+                            `http://localhost:3000/api/users/getUserByUid`,
+                            { uid: data.opponentId },
+                            { headers }
+                        );
+                        
+                        const opponentName = response.data?.user?.name || data.opponentId;
+                        
+                        // Show success toast with opponent name
+                        toast.success(`🎉 Congratulations! You won your match against ${opponentName}!`, {
+                            position: "top-center",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        });
+                    } catch (error) {
+                        console.error('Failed to fetch opponent name:', error);
+                        // Fallback to showing toast with opponent ID
+                        toast.success(`🎉 Congratulations! You won your match against ${data.opponentId}!`, {
+                            position: "top-center",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        });
+                    }
+                };
+                
+                fetchOpponentName();
+                
+                // Set match result and show overlay
+                setMatchResult('won');
+                setShowMatchOverlay(true);
+                
+                // Auto-redirect after 4 seconds
+                setTimeout(() => {
+                    navigate(`/contest/${contestId}`);
+                }, 4000);
+            } else if (data.status === 'lost') {
+                // Fetch opponent name
+                const fetchOpponentName = async () => {
+                    try {
+                        const token = localStorage.getItem("token");
+                        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                        
+                        const response = await axios.post(
+                            `http://localhost:3000/api/users/getUserByUid`,
+                            { uid: data.opponentId },
+                            { headers }
+                        );
+                        
+                        const opponentName = response.data?.user?.name || data.opponentId;
+                        
+                        // Show info toast for loss with opponent name
+                        toast.info(`💪 Keep learning! Your opponent ${opponentName} won this time.`, {
+                            position: "top-center",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        });
+                    } catch (error) {
+                        console.error('Failed to fetch opponent name:', error);
+                        // Fallback to showing toast with opponent ID
+                        toast.info(`💪 Keep learning! Your opponent ${data.opponentId} won this time.`, {
+                            position: "top-center",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                        });
+                    }
+                };
+                
+                fetchOpponentName();
+                
+                // Set match result and show overlay
+                setMatchResult('lost');
+                setShowMatchOverlay(true);
+                
+                // Auto-redirect after 4 seconds
+                setTimeout(() => {
+                    navigate(`/contest/${contestId}`);
+                }, 4000);
+            } else {
+                console.warn('Received matchUpdate with unexpected status:', data.status);
+            }
+        });
+
+        // Cleanup on component unmount
+        return () => {
+            socketConnection.disconnect();
+            setSocket(null);
+            setSocketConnected(false);
+        };
+    }, [matchDetails?.userId, contestId, navigate]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -563,6 +717,91 @@ const ContestStartPage = () => {
                 </div>
             )}
 
+            {/* Winner overlay with celebration animation */}
+            {showMatchOverlay && matchResult === 'won' && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-green-800 to-emerald-900 rounded-lg p-8 text-center shadow-2xl border border-green-500 max-w-md">
+                        {/* Winner animation - spinning trophy with celebration */}
+                        <div className="relative mx-auto mb-6">
+                            <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-yellow-400 border-opacity-75 mx-auto"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-4xl animate-bounce">🏆</span>
+                            </div>
+                            {/* Celebration particles */}
+                            <div className="absolute -top-2 -left-2 animate-ping">
+                                <span className="text-yellow-400 text-lg">✨</span>
+                            </div>
+                            <div className="absolute -top-2 -right-2 animate-ping" style={{animationDelay: '0.5s'}}>
+                                <span className="text-yellow-400 text-lg">🎉</span>
+                            </div>
+                            <div className="absolute -bottom-2 -left-2 animate-ping" style={{animationDelay: '1s'}}>
+                                <span className="text-yellow-400 text-lg">⭐</span>
+                            </div>
+                            <div className="absolute -bottom-2 -right-2 animate-ping" style={{animationDelay: '1.5s'}}>
+                                <span className="text-yellow-400 text-lg">🎊</span>
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-green-400 mb-4 animate-pulse">Victory! 🎉</h2>
+                        <p className="text-green-200 mb-4 text-lg">Congratulations! You won the match!</p>
+                        <p className="text-green-300 text-sm mb-6">Redirecting to contest page in 4 seconds...</p>
+                        <button
+                            onClick={() => navigate(`/contest/${contestId}`)}
+                            className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 transform hover:scale-105"
+                        >
+                            Go to Contest
+                        </button>
+                        <button
+                            onClick={() => setShowMatchOverlay(false)}
+                            className="ml-3 bg-gray-600 hover:bg-gray-500 px-4 py-3 rounded-lg text-gray-200 font-semibold transition-all duration-200"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Loser overlay with motivational animation */}
+            {showMatchOverlay && matchResult === 'lost' && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-blue-800 to-indigo-900 rounded-lg p-8 text-center shadow-2xl border border-blue-500 max-w-md">
+                        {/* Learning animation - rotating book with progress */}
+                        <div className="relative mx-auto mb-6">
+                            <div className="animate-pulse rounded-full h-20 w-20 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto flex items-center justify-center">
+                                <span className="text-3xl animate-bounce">📚</span>
+                            </div>
+                            {/* Motivational elements */}
+                            <div className="absolute -top-1 -left-1 animate-ping" style={{animationDelay: '0.5s'}}>
+                                <span className="text-blue-400 text-sm">💪</span>
+                            </div>
+                            <div className="absolute -top-1 -right-1 animate-ping" style={{animationDelay: '1s'}}>
+                                <span className="text-purple-400 text-sm">🚀</span>
+                            </div>
+                            <div className="absolute -bottom-1 -left-1 animate-ping" style={{animationDelay: '1.5s'}}>
+                                <span className="text-blue-400 text-sm">⚡</span>
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 animate-ping" style={{animationDelay: '2s'}}>
+                                <span className="text-purple-400 text-sm">🎯</span>
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-blue-400 mb-4 animate-pulse">Keep Learning! 💪</h2>
+                        <p className="text-blue-200 mb-4 text-lg">Every challenge makes you stronger!</p>
+                        <p className="text-blue-300 text-sm mb-6">Redirecting to contest page in 4 seconds...</p>
+                        <button
+                            onClick={() => navigate(`/contest/${contestId}`)}
+                            className="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 transform hover:scale-105"
+                        >
+                            Go to Contest
+                        </button>
+                        <button
+                            onClick={() => setShowMatchOverlay(false)}
+                            className="ml-3 bg-gray-600 hover:bg-gray-500 px-4 py-3 rounded-lg text-gray-200 font-semibold transition-all duration-200"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Enhanced Header */}
             <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700/50 p-4 flex justify-between items-center shrink-0 shadow-lg">
                 <div className="flex items-center space-x-6">
@@ -594,6 +833,12 @@ const ContestStartPage = () => {
                     </div>
                     <div className="bg-gray-700/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-600/50">
                         Opponent: <span className="text-red-400 ml-1">❌ Not Solved</span>
+                    </div>
+                    <div className="bg-gray-700/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-600/50">
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${socketConnected ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                        <span className="text-xs text-gray-300">
+                            {socketConnected ? 'Connected' : 'Disconnected'}
+                        </span>
                     </div>
                 </div>
             </header>
