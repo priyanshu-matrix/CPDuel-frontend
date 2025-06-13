@@ -128,11 +128,16 @@ const ContestStartPage = () => {
                     return;
                 }
                 
-                const { matchId, userId, problemId, user2 } = matchInfoResponse.data.matchInfo;
+                const { matchId, userId, problemId, user2 , status } = matchInfoResponse.data.matchInfo;
                 
                 // Check if user gets a BYE (no problem assigned and user2 is "Bye")
                 if (!problemId || user2 === "Bye") {
                     setError("You are promoted as BYE. Please wait until the next round starts.");
+                    setLoading(false);
+                    return;
+                }
+                if(status === "completed") {
+                    setError("This match has already been completed. Please wait for the next round.");
                     setLoading(false);
                     return;
                 }
@@ -362,8 +367,9 @@ const ContestStartPage = () => {
                 language_id: language_id,
                 code: userCode,
                 question_id: problemData._id,
-                userID: matchDetails.userId,
+                userId: matchDetails.userId,
                 runSampleOnly: false,
+                contestId: contestId, // Include contestId if needed by backend
             };
 
             const token = localStorage.getItem("token");
