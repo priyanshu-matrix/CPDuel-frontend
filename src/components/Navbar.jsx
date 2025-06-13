@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const navLinks = [
     { href: "/home", label: "Home" },
@@ -8,6 +9,7 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+    const { logout: authLogout } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [userName, setUserName] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -18,8 +20,7 @@ const Navbar = () => {
 
     const logout = () => {
         // Remove specific tokens
-        localStorage.removeItem("token");
-        localStorage.removeItem("isAdmin");
+        authLogout();
         
         // Remove all contest-related code items
         Object.keys(localStorage).forEach(key => {

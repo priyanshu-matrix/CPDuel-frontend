@@ -6,11 +6,15 @@ import {
     GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "../utils/firebase/firebase";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -21,6 +25,12 @@ const Login = () => {
     const [showResetForm, setShowResetForm] = useState(false);
     const [resetSuccess, setResetSuccess] = useState(false);
     const [isPasswordReset, setIsPasswordReset] = useState(false);
+
+    // Redirect if already logged in
+    if (user) {
+        navigate('/home');
+        return null;
+    }
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -36,7 +46,6 @@ const Login = () => {
             await signInWithEmailAndPassword(auth, formData.email, formData.password);
             const user = auth.currentUser;
             console.log("User logged in successfully:", user);
-            toast.success("Logged in successfully!");
 
             // Get the Firebase ID token
             const token = await user.getIdToken();
@@ -52,18 +61,20 @@ const Login = () => {
 
             const data = await response.json();
             if (data.isAdmin) {
-                // Redirect to admin panel
-                localStorage.setItem("token", token);
-                window.location.href = "/home";
+                // Store admin status
+                localStorage.setItem("isAdmin", "true");
+                toast.success("Welcome back, Admin!");
             } else {
-                // Regular user page
-                localStorage.setItem("token", token);
-                window.location.href = "/home";
+                toast.success("Logged in successfully!");
             }
+            // AuthContext will handle token management automatically
+            // Small delay to show toast before navigation
+            setTimeout(() => {
+                navigate('/home');
+            }, 1500);
         } catch (error) {
             console.error("Error logging in:", error);
             toast.error("Invalid credentials. Please try again.");
-            // Handle error appropriately, e.g., show a notification
         }
     };
 
@@ -102,7 +113,6 @@ const Login = () => {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             console.log("User logged in successfully with Google:", user);
-            toast.success("Logged in successfully with Google!");
 
             // Get the Firebase ID token
             const token = await user.getIdToken();
@@ -123,19 +133,20 @@ const Login = () => {
 
             const data = await response.json();
             if (data.isAdmin) {
-                // Redirect to admin panel
-                localStorage.setItem("token", token);
-                localStorage.setItem("isAdmin", true);
-                window.location.href = "/home";
+                // Store admin status
+                localStorage.setItem("isAdmin", "true");
+                toast.success("Welcome back, Admin! (Google Sign-in)");
             } else {
-                // Regular user page
-                localStorage.setItem("token", token);
-                window.location.href = "/home";
+                toast.success("Logged in successfully with Google!");
             }
+            // AuthContext will handle token management automatically
+            // Small delay to show toast before navigation
+            setTimeout(() => {
+                navigate('/home');
+            }, 1500);
         } catch (error) {
             console.error("Error logging in with Google:", error);
             toast.error("Failed to login with Google.");
-            // Handle error appropriately, e.g., show a notification
         }
     };
 

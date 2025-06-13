@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ContestCard from "../components/ContestCard";
-import axios from "axios";
+import { useApi } from "../hooks/useApi";
 
 const ContestPage = () => {
+    const api = useApi();
     const [contests, setContests] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -17,16 +18,11 @@ const ContestPage = () => {
     const fetchContests = async () => {
         try {
             setLoading(true);
-            // Get token from storage
-            const token = localStorage.getItem("token");
+            setError(null);
 
-            // Set headers with token if available
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-            const response = await axios.get(
-                "http://localhost:3000/api/contests/getall",
-                { headers }
-            );
+            // Using the new API hook - token management is automatic
+            const response = await api.get('/contests/getall');
+            
             // Check different possible data structures
             let contestsData = [];
 
