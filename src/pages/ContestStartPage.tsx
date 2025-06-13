@@ -63,6 +63,8 @@ const ContestStartPage = () => {
         `#include <bits/stdc++.h>\nusing namespace std;\nint main() {\n    // Your code here\n    return 0;\n}`
     );
     const [isRunning, setIsRunning] = useState(false);
+    const [isAccepted, setIsAccepted] = useState(false);
+    const [redirectCountdown, setRedirectCountdown] = useState(5);
 
     // Effect to load code from localStorage when problemData is available
     useEffect(() => {
@@ -390,6 +392,30 @@ const ContestStartPage = () => {
                 type: result.overallStatus?.toLowerCase().includes("accept") ? "success" : (result.overallStatus ? "error" : "info")
             });
             
+            // Check if submission is accepted
+            if (result.overallStatus?.toLowerCase().includes("accept")) {
+                setIsAccepted(true);
+                output.push({ 
+                    text: "🎉 Congratulations! Your solution has been accepted!", 
+                    type: "success" 
+                });
+                output.push({ 
+                    text: "Redirecting to contest page in 5 seconds...", 
+                    type: "info" 
+                });
+                
+                // Start countdown timer
+                let countdown = 5;
+                const countdownInterval = setInterval(() => {
+                    countdown--;
+                    setRedirectCountdown(countdown);
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        navigate(`/contest/${contestId}`);
+                    }
+                }, 1000);
+            }
+
             if (result.message) {
                 let messageType = "info";
                 const lowerCaseMessage = result.message.toLowerCase();
@@ -519,6 +545,24 @@ const ContestStartPage = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
+            {/* Success overlay with loading animation */}
+            {isAccepted && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-gray-800 rounded-lg p-8 text-center shadow-2xl border border-gray-600">
+                        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-green-400 border-opacity-75 mx-auto mb-4"></div>
+                        <h2 className="text-2xl font-bold text-green-400 mb-2">Solution Accepted! 🎉</h2>
+                        <p className="text-gray-300 mb-4">Redirecting to contest page...</p>
+                        <div className="text-3xl font-bold text-amber-400">{redirectCountdown}</div>
+                        <button
+                            onClick={() => navigate(`/contest/${contestId}`)}
+                            className="mt-4 bg-green-600 hover:bg-green-500 px-6 py-2 rounded-lg text-white font-semibold transition-all duration-200"
+                        >
+                            Go Now
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Enhanced Header */}
             <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700/50 p-4 flex justify-between items-center shrink-0 shadow-lg">
                 <div className="flex items-center space-x-6">
