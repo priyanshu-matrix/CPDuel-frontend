@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+import ProblemForm from "./ProblemForm.jsx";
+import ViewQuestionComponent from "./ViewQuestionComponent.tsx";
 
 const ContestList = () => {
     const { contestId } = useParams();
@@ -17,6 +19,18 @@ const ContestList = () => {
     const [filteredProblems, setFilteredProblems] = useState([]);
     const [addingProblem, setAddingProblem] = useState(false);
     const [loadingProblems, setLoadingProblems] = useState(false);
+
+    // Edit problem state
+    const [editingProblem, setEditingProblem] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [deletingProblem, setDeletingProblem] = useState(null);
+
+    // Ref for scroll animation
+    const problemsListRef = useRef(null);
+
+    // View question modal state
+    const [viewingProblem, setViewingProblem] = useState(null);
+    const [showViewModal, setShowViewModal] = useState(false);
 
     const decodeFromBase64 = (encodedText) => {
         try {
@@ -155,6 +169,121 @@ const ContestList = () => {
         }
     };
 
+    const removeProblemFromContest = async (problemId) => {
+        if (!contestId) {
+            toast.error("Contest ID is required");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(
+                "http://localhost:3000/api/contests/removeProblemFromContest",
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        ContestID: contestId,
+                        ProblemID: problemId,
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                toast.success("Problem removed successfully!");
+                // Refresh the contest problems list
+                fetchContestProblems();
+            } else {
+                const errorData = await response.json();
+                toast.error(
+                    `Failed to remove problem: ${errorData.message || "Unknown error"}`
+                );
+            }
+        } catch (error) {
+            console.error("Error removing problem:", error);
+            toast.error("Error removing problem");
+        }
+    };
+
+    const editProblem = async (problemData) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(
+                "http://localhost:3000/api/problems/edit",
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        id: editingProblem._id,
+                        ...problemData,
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                toast.success("Problem updated successfully!");
+                setShowEditModal(false);
+                setEditingProblem(null);
+                // Refresh the contest problems list
+                fetchContestProblems();
+            } else {
+                const errorData = await response.json();
+                toast.error(
+                    `Failed to update problem: ${errorData.message || "Unknown error"}`
+                );
+            }
+        } catch (error) {
+            console.error("Error updating problem:", error);
+            toast.error("Error updating problem");
+        }
+    };
+
+    const deleteProblem = async (problemId) => {
+        if (!window.confirm("Are you sure you want to delete this problem? This action cannot be undone.")) {
+            return;
+        }
+
+        setDeletingProblem(problemId);
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(
+                "http://localhost:3000/api/problems/delete",
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        id: problemId,
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                toast.success("Problem deleted successfully!");
+                // Refresh the contest problems list
+                fetchContestProblems();
+            } else {
+                const errorData = await response.json();
+                toast.error(
+                    `Failed to delete problem: ${errorData.message || "Unknown error"}`
+                );
+            }
+        } catch (error) {
+            console.error("Error deleting problem:", error);
+            toast.error("Error deleting problem");
+        } finally {
+            setDeletingProblem(null);
+        }
+    };
+
     const fetchContestProblems = async () => {
         setLoading(true);
         setError(null);
@@ -208,6 +337,16 @@ const ContestList = () => {
             fetchContestProblems();
         }
     }, [contestId]);
+
+    // Scroll animation when problems length >= 5
+    useEffect(() => {
+        if (problems.length >= 5 && problemsListRef.current) {
+            problemsListRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }, [problems.length]);
 
     if (loading) {
         return (
@@ -308,13 +447,24 @@ const ContestList = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => addProblemToContest(problem._id)}
-                                            disabled={addingProblem}
-                                            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded transition font-semibold min-w-[100px] flex items-center justify-center"
-                                        >
-                                            {addingProblem ? "Adding..." : "Add"}
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setViewingProblem(problem._id);
+                                                    setShowViewModal(true);
+                                                }}
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition font-semibold min-w-[100px] flex items-center justify-center"
+                                            >
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => addProblemToContest(problem._id)}
+                                                disabled={addingProblem}
+                                                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded transition font-semibold min-w-[100px] flex items-center justify-center"
+                                            >
+                                                {addingProblem ? "Adding..." : "Add"}
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             ) : (
@@ -334,7 +484,7 @@ const ContestList = () => {
             </div>
 
             {/* Existing Problems List */}
-            <h2 className="text-2xl font-bold text-gray-100 mb-4 w-full max-w-2xl">
+            <h2 ref={problemsListRef} className="text-2xl font-bold text-gray-100 mb-4 w-full max-w-2xl">
                 Current Contest Problems ({problems.length})
             </h2>
 
@@ -365,15 +515,68 @@ const ContestList = () => {
                                 <span className="font-medium text-gray-200">Points:</span>{" "}
                                 {problem.points || "N/A"}
                             </p>
-                            <Link
-                                to={`/problem/${problem._id}`}
-                                className="inline-block bg-indigo-600 text-white font-semibold py-2 px-4 rounded hover:bg-indigo-700 transition-colors duration-300"
-                            >
-                                View Problem
-                            </Link>
+                            <div className="flex gap-2 flex-wrap">
+                                <button
+                                    onClick={() => {
+                                        setViewingProblem(problem._id);
+                                        setShowViewModal(true);
+                                    }}
+                                    className="inline-block bg-indigo-600 text-white font-semibold py-2 px-4 rounded hover:bg-indigo-700 transition-colors duration-300"
+                                >
+                                    View Problem
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setEditingProblem(problem);
+                                        setShowEditModal(true);
+                                    }}
+                                    className="inline-block bg-green-600 text-white font-semibold py-2 px-4 rounded hover:bg-green-700 transition-colors duration-300"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => deleteProblem(problem._id)}
+                                    disabled={deletingProblem === problem._id}
+                                    className="inline-block bg-red-600 text-white font-semibold py-2 px-4 rounded hover:bg-red-700 transition-colors duration-300 disabled:bg-gray-500"
+                                >
+                                    {deletingProblem === problem._id ? "Deleting..." : "Delete"}
+                                </button>
+                                <button
+                                    onClick={() => removeProblemFromContest(problem._id)}
+                                    className="inline-block bg-orange-600 text-white font-semibold py-2 px-4 rounded hover:bg-orange-700 transition-colors duration-300"
+                                >
+                                    Remove from Contest
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* Edit Problem Modal */}
+            {showEditModal && editingProblem && (
+                <ProblemForm
+                    initialData={editingProblem}
+                    onSubmit={editProblem}
+                    onCancel={() => {
+                        setShowEditModal(false);
+                        setEditingProblem(null);
+                    }}
+                    isEditing={true}
+                    title="Edit Problem"
+                />
+            )}
+
+            {/* View Question Modal */}
+            {showViewModal && viewingProblem && (
+                <ViewQuestionComponent
+                    problemId={viewingProblem}
+                    isOpen={showViewModal}
+                    onClose={() => {
+                        setShowViewModal(false);
+                        setViewingProblem(null);
+                    }}
+                />
             )}
         </div>
     );

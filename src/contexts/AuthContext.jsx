@@ -23,11 +23,11 @@ export const AuthProvider = ({ children }) => {
     const refreshToken = async (forceRefresh = false) => {
         try {
             if (auth.currentUser) {
-                console.log('🔄 Refreshing token...', { forceRefresh });
+                // console.log('🔄 Refreshing token...', { forceRefresh });
                 const newToken = await auth.currentUser.getIdToken(forceRefresh);
                 localStorage.setItem('token', newToken);
                 setToken(newToken);
-                console.log('✅ Token refreshed successfully');
+                // console.log('✅ Token refreshed successfully');
                 return newToken;
             }
         } catch (error) {
