@@ -17,8 +17,17 @@ const Navbar = () => {
     };
 
     const logout = () => {
+        // Remove specific tokens
         localStorage.removeItem("token");
         localStorage.removeItem("isAdmin");
+        
+        // Remove all contest-related code items
+        Object.keys(localStorage).forEach(key => {
+            if (key.match(/^contest-.+-problem-.+-code$/)) {
+                localStorage.removeItem(key);
+            }
+        });
+        
         window.location.href = "/";
     };
 

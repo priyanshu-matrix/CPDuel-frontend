@@ -64,6 +64,25 @@ const ContestStartPage = () => {
     );
     const [isRunning, setIsRunning] = useState(false);
 
+    // Effect to load code from localStorage when problemData is available
+    useEffect(() => {
+        if (problemData && contestId) {
+            const localStorageKey = `contest-${contestId}-problem-${problemData._id}-code`;
+            const savedCode = localStorage.getItem(localStorageKey);
+            if (savedCode) {
+                setUserCode(savedCode);
+            }
+        }
+    }, [problemData, contestId]);
+
+    // Effect to save code to localStorage when userCode changes
+    useEffect(() => {
+        if (problemData && contestId && userCode !== `// Default C++ template\n#include <iostream>\n\nint main() {\n    // Your code here\n    return 0;\n}`) { // Avoid saving initial default if not changed
+            const localStorageKey = `contest-${contestId}-problem-${problemData._id}-code`;
+            localStorage.setItem(localStorageKey, userCode);
+        }
+    }, [userCode, problemData, contestId]);
+
     // Fetch problem data
     useEffect(() => {
         const fetchUserMatchInfoAndProblem = async () => {
@@ -161,7 +180,7 @@ const ContestStartPage = () => {
                             ) || [],
                     };
                     setProblemData(decodedProblem);
-                    setError(null);
+                    // setError(null); // setError(null) is already handled by the structure
                 } else {
                     setError("Problem data is not in the expected format.");
                     console.error("Unexpected problem response structure:", problemResponse.data);
@@ -702,7 +721,7 @@ const ContestStartPage = () => {
                                     language="cpp"
                                     theme="vs-dark"
                                     value={userCode}
-                                    onChange={(value) => setUserCode(value)}
+                                    onChange={(value) => setUserCode(value || "")} // Ensure value is not undefined
                                     options={{
                                         minimap: { enabled: false },
                                         scrollBeyondLastLine: false,
