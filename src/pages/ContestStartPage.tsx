@@ -240,7 +240,7 @@ const ContestStartPage = () => {
         try {
             const payload = {
                 language_id: language_id,
-                code: userCode,
+                code: btoa(userCode),
                 question_id: problemData._id,
                 userID: matchDetails.userId,
                 runSampleOnly: true,
