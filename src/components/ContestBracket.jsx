@@ -199,22 +199,28 @@ const ContestBracket = () => {
         }
     };
 
-    // Start a new round
+    // Start a new round with winner promotion check first
     const startNewRound = async () => {
         try {
             setMatchesLoading(true);
             const token = localStorage.getItem("token");
             if (!token) {
                 setError("Authentication required");
-                setMatchesLoading(false); // Reset loading state
+                setMatchesLoading(false);
                 return;
             }
 
-            console.log("Starting new round for contest:", contestId);
+            // Step 1: First check and promote winners from current round
+            await promoteRoundWinners();
+            
+            // Small delay to ensure promotion is complete
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Step 2: Start the actual new round
             const response = await axios.post(
-                `http://localhost:3000/api/contests/startContest`, // Updated endpoint
+                `http://localhost:3000/api/contests/startContest`,
                 {
-                    ContestID: contestId, // Updated payload
+                    ContestID: contestId,
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -222,7 +228,7 @@ const ContestBracket = () => {
             // Use matches and round from response directly
             setMatches(response.data.matches || []);
             setCurrentRound(response.data.round || 0);
-            setError(null); // Clear previous errors
+            setError(null);
         } catch (err) {
             console.error("Error starting new round:", err);
             setError(err.response?.data?.message || "Failed to start new round");
@@ -264,6 +270,11 @@ const ContestBracket = () => {
             // Backend returns the updated list of matches for the current round
             setMatches(response.data.matches || []);
             setError(null); // Clear error on success
+            
+            // Check for winner-based promotion after match completion
+            setTimeout(() => {
+                promoteRoundWinners();
+            }, 1000); // Delay to ensure state updates
         } catch (err) {
             console.error("Error updating match:", err);
             setError("Failed to update match");
@@ -333,6 +344,250 @@ const ContestBracket = () => {
         } finally {
             setMatchesLoading(false);
         }
+    };
+
+    // Auto-promotion logic using direct API calls
+    const autoPromoteUsers = async () => {
+        try {
+            setStatusChangeLoading(true);
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setError("Authentication required");
+                setStatusChangeLoading(false);
+                return;
+            }
+
+            // Get the last 4 users from primary round (assuming they are the survivors)
+            const lastFourPrimary = primaryUsers.slice(-4);
+            
+            // Promote last 4 primary users to semi-finalists
+            for (const user of lastFourPrimary) {
+                const apiUserUid = user.uid; // Use Firebase UID
+                if (!apiUserUid) {
+                    console.error("API UID missing for user:", user.name);
+                    continue;
+                }
+
+                await axios.post(
+                    "http://localhost:3000/api/users/changeUserStatus",
+                    {
+                        uid: apiUserUid,
+                        contestId,
+                        contestStatus: "semi-finalists",
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                // Update local state
+                setUsers((prevUsers) =>
+                    prevUsers.map((u) => {
+                        if (u._id === user._id) {
+                            const updatedContests = u.registeredContests.map((contest) => {
+                                if (contest.contestId === contestId) {
+                                    return { ...contest, status: "semi-finalists" };
+                                }
+                                return contest;
+                            });
+                            return { ...u, registeredContests: updatedContests };
+                        }
+                        return u;
+                    })
+                );
+            }
+
+            // If there's only 1 semi-finalist left, promote to finalist
+            if (semiFinalists.length === 1) {
+                const winner = semiFinalists[0];
+                const apiUserUid = winner.uid;
+                
+                if (apiUserUid) {
+                    await axios.post(
+                        "http://localhost:3000/api/users/changeUserStatus",
+                        {
+                            uid: apiUserUid,
+                            contestId,
+                            contestStatus: "finalists",
+                        },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+
+                    // Update local state
+                    setUsers((prevUsers) =>
+                        prevUsers.map((u) => {
+                            if (u._id === winner._id) {
+                                const updatedContests = u.registeredContests.map((contest) => {
+                                    if (contest.contestId === contestId) {
+                                        return { ...contest, status: "finalists" };
+                                    }
+                                    return contest;
+                                });
+                                return { ...u, registeredContests: updatedContests };
+                            }
+                            return u;
+                        })
+                    );
+                }
+            }
+
+            setError(null);
+            
+            // Refresh users data to get updated status
+            await refreshUsersData();
+        } catch (err) {
+            console.error("Error in auto-promotion:", err);
+            setError("Failed to auto-promote users: " + err.message);
+        } finally {
+            setStatusChangeLoading(false);
+        }
+    };
+
+    // Get current round winners from completed matches
+    const getCurrentRoundWinners = () => {
+        const completedMatches = matches.filter(match => match.status === "completed" && match.winner);
+        const winners = completedMatches.map(match => match.winner);
+        const uniqueWinners = [...new Set(winners)];
+        
+        return uniqueWinners;
+    };
+
+    // Auto-promotion based on round winners
+    const promoteRoundWinners = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const winners = getCurrentRoundWinners();
+            const allMatchesCompleted = matches.length > 0 && matches.every(match => match.status === "completed");
+            
+            if (!allMatchesCompleted) {
+                return;
+            }
+
+            // Promote winners based on count
+            if (winners.length === 4) {
+                setStatusChangeLoading(true);
+                
+                for (const winnerUid of winners) {
+                    try {
+                        await axios.post(
+                            "http://localhost:3000/api/users/changeUserStatus",
+                            {
+                                uid: winnerUid,
+                                contestId,
+                                contestStatus: "semi-finalists",
+                            },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                    } catch (err) {
+                        console.error(`Failed to promote ${winnerUid}:`, err);
+                    }
+                }
+                
+                await refreshUsersData();
+                setStatusChangeLoading(false);
+                
+            } else if (winners.length === 1) {
+                setStatusChangeLoading(true);
+                
+                try {
+                    await axios.post(
+                        "http://localhost:3000/api/users/changeUserStatus",
+                        {
+                            uid: winners[0],
+                            contestId,
+                            contestStatus: "finalists",
+                        },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    
+                    await refreshUsersData();
+                } catch (err) {
+                    console.error(`Failed to crown champion:`, err);
+                }
+                
+                setStatusChangeLoading(false);
+            }
+            
+        } catch (err) {
+            console.error("Error in promoteRoundWinners:", err);
+            setStatusChangeLoading(false);
+        }
+    };
+
+    // Refresh users data after promotions
+    const refreshUsersData = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const response = await axios.get(
+                "http://localhost:3000/api/users/all",
+                { headers }
+            );
+            setUsers(response.data);
+        } catch (err) {
+            console.error("Error refreshing users data:", err);
+        }
+    };
+
+    // Check if auto-promotion should happen after match completion
+    const checkAutoPromotion = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            // Auto-promote when primary round is down to 4 users
+            if (primaryUsers.length === 4 && semiFinalists.length === 0) {
+                await autoPromoteUsers();
+            }
+            // Auto-promote semi-finalist to finalist when only 1 remains
+            else if (semiFinalists.length === 1 && finalists.length === 0) {
+                const winner = semiFinalists[0];
+                const apiUserUid = winner.uid;
+                
+                if (apiUserUid) {
+                    await axios.post(
+                        "http://localhost:3000/api/users/changeUserStatus",
+                        {
+                            uid: apiUserUid,
+                            contestId,
+                            contestStatus: "finalists",
+                        },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+
+                    // Update local state
+                    setUsers((prevUsers) =>
+                        prevUsers.map((u) => {
+                            if (u._id === winner._id) {
+                                const updatedContests = u.registeredContests.map((contest) => {
+                                    if (contest.contestId === contestId) {
+                                        return { ...contest, status: "finalists" };
+                                    }
+                                    return contest;
+                                });
+                                return { ...u, registeredContests: updatedContests };
+                            }
+                            return u;
+                        })
+                    );
+                }
+            }
+        } catch (err) {
+            console.error("Error in checkAutoPromotion:", err);
+            setError("Failed to check auto-promotion: " + err.message);
+        }
+    };
+
+    // Enhanced auto-resolve function with winner-based promotion logic
+    const autoResolveAllMatchesWithPromotion = async () => {
+        // First resolve all matches
+        await autoResolveAllMatches();
+        
+        // Then check for winner-based promotion
+        setTimeout(() => {
+            promoteRoundWinners();
+        }, 1500); // Delay to ensure state updates
     };
 
     // Load initial matches
@@ -702,13 +957,44 @@ const ContestBracket = () => {
                 </button>
             </div>
 
-            {/* Trophy Display */}
-            <div className="flex justify-center mb-8">
-                <img
-                    src={TROPHY_IMG}
-                    alt="Trophy"
-                    className="w-24 h-24 md:w-28 md:h-28 drop-shadow-lg"
-                />
+            {/* Trophy Display with Champion Name */}
+            <div className="flex flex-col items-center mb-8">
+                <div className="relative">
+                    <img
+                        src={TROPHY_IMG}
+                        alt="Trophy"
+                        className="w-24 h-24 md:w-28 md:h-28 drop-shadow-lg"
+                    />
+                    {/* Golden glow effect for trophy when there's a finalist */}
+                    {finalists.length > 0 && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 via-yellow-500/30 to-amber-400/20 rounded-full blur-lg animate-pulse"></div>
+                    )}
+                </div>
+                
+                {/* Champion Name Display */}
+                {finalists.length > 0 && (
+                    <div className="mt-4 text-center">
+                        <div className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-400 bg-clip-text text-transparent text-2xl md:text-3xl font-bold tracking-wide animate-pulse">
+                            🏆 {finalists[0].name} 🏆
+                        </div>
+                        <div className="text-amber-300 text-sm md:text-base font-semibold mt-1 tracking-wider">
+                            TOURNAMENT CHAMPION
+                        </div>
+                        <div className="w-32 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-2 rounded-full"></div>
+                    </div>
+                )}
+                
+                {/* Awaiting Champion Message */}
+                {finalists.length === 0 && (
+                    <div className="mt-4 text-center">
+                        <div className="text-gray-400 text-lg font-semibold">
+                            Awaiting Champion...
+                        </div>
+                        <div className="text-gray-500 text-sm mt-1">
+                            The crown awaits its rightful owner
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Futuristic Tournament Arena */}
@@ -723,17 +1009,26 @@ const ContestBracket = () => {
                             BATTLE ARENA
                         </h2>
                         <div className="flex justify-center space-x-8 mb-8">
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-cyan-400">{primaryUsers.length}</div>
+                            <div className="text-center relative">
+                                <div className="text-2xl font-bold text-cyan-400">
+                                    {primaryUsers.length}
+                                </div>
                                 <div className="text-sm text-gray-400">FIGHTERS</div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-purple-400">{semiFinalists.length}</div>
+                            <div className="text-center relative">
+                                <div className="text-2xl font-bold text-purple-400">
+                                    {semiFinalists.length}
+                                </div>
                                 <div className="text-sm text-gray-400">SEMI-FINALISTS</div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-bold text-amber-400">{finalists.length}</div>
+                            <div className="text-center relative">
+                                <div className={`text-2xl font-bold ${finalists.length > 0 ? 'text-amber-400 animate-pulse' : 'text-amber-400'}`}>
+                                    {finalists.length}
+                                </div>
                                 <div className="text-sm text-gray-400">FINALISTS</div>
+                                {finalists.length > 0 && (
+                                    <div className="absolute -top-2 -right-2 w-3 h-3 bg-amber-400 rounded-full animate-ping"></div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -791,7 +1086,7 @@ const ContestBracket = () => {
                         {/* Finals Arena */}
                         <div className="space-y-4">
                             <div className="text-center mb-6">
-                                <h3 className="text-xl font-bold text-amber-400 mb-2">CHAMPIONSHIP ARENA</h3>
+                                <h3 className="text-xl font-bold text-amber-400 mb-2">CHAMPION</h3>
                                 <div className="h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full"></div>
                             </div>
                             <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
@@ -870,18 +1165,38 @@ const ContestBracket = () => {
                                     <span>⚡</span>
                                 </div>
                             </button>
+                            
                             {matches.length > 0 && matches.some((m) => m.status === "pending") && (
                                 <button
-                                    onClick={autoResolveAllMatches}
-                                    disabled={matchesLoading}
+                                    onClick={autoResolveAllMatchesWithPromotion}
+                                    disabled={matchesLoading || statusChangeLoading}
                                     className="relative bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-yellow-500/20"
                                 >
                                     <div className="flex items-center justify-center space-x-2">
                                         <span>🎲</span>
-                                        <span>AUTO-RESOLVE CURRENT ROUND</span>
+                                        <span>AUTO-RESOLVE & PROMOTE</span>
                                         <span>🎲</span>
                                     </div>
                                 </button>
+                            )}
+                            
+                            {/* Debug & Test Buttons (only for admins) */}
+                            {false && isAdmin && (
+                                <>
+                                    <button
+                                        onClick={() => {}}
+                                        disabled={true}
+                                    >
+                                        � DEBUG STATUS
+                                    </button>
+                                    <button
+                                        onClick={promoteRoundWinners}
+                                        disabled={statusChangeLoading}
+                                        className="relative bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white font-bold px-6 py-2 rounded-lg transition-all duration-300 text-sm disabled:opacity-50"
+                                    >
+                                        🏆 CHECK WINNERS
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -926,28 +1241,6 @@ const ContestBracket = () => {
                     </div>
                 )}
             </div>
-
-            {/* Add custom scrollbar styles */}
-            <style jsx>{`
-                .custom-scrollbar {
-                    scrollbar-width: thin;
-                    scrollbar-color: #06b6d4 #1f2937;
-                }
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 8px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #1f2937;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: linear-gradient(to bottom, #06b6d4, #3b82f6);
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: linear-gradient(to bottom, #0891b2, #2563eb);
-                }
-            `}</style>
 
             <div className="mt-8 text-3xl font-bold text-center tracking-wide text-amber-400">
                 {contestTitle.toUpperCase().replace(/-/g, " ")}
