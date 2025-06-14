@@ -292,7 +292,7 @@ const ViewQuestionComponent: React.FC<ViewQuestionComponentProps> = ({
                                                 <li key={index} className="flex items-start">
                                                     <span className="text-orange-400 mr-2">•</span>
                                                     <span className="whitespace-pre-wrap">
-                                                        {parseTextWithMath(constraint)}
+                                                        {parseTextWithMath(atob(constraint))}
                                                     </span>
                                                 </li>
                                             ))}
