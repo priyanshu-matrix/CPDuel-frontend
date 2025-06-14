@@ -11,7 +11,6 @@ const ContestBracket = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [openSection, setOpenSection] = useState(null); // Track which section is open
     const [statusChangeLoading, setStatusChangeLoading] = useState(false);
 
     useEffect(() => {
@@ -391,21 +390,16 @@ const ContestBracket = () => {
             )
     );
 
-    // Toggle function to handle opening/closing sections
-    const toggleSection = (section) => {
-        if (openSection === section) {
-            setOpenSection(null); // Close if already open
-        } else {
-            setOpenSection(section); // Open the selected section
-        }
-    };
-
-    // Display user in a bracket slot
-    const renderUser = (user) => {
+    // Display user in a futuristic bracket slot
+    const renderUser = (user, isWinner = false, status = 'active') => {
         if (!user)
             return (
-                <div className="bg-gray-700 rounded-lg h-10 w-full mx-auto flex items-center justify-center text-gray-400">
-                    TBD
+                <div className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 rounded-xl h-16 w-full mx-auto flex items-center justify-center text-gray-400 border border-gray-600 shadow-lg">
+                    <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-mono">AWAITING_PLAYER</span>
+                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
+                    </div>
                 </div>
             );
 
@@ -414,128 +408,255 @@ const ContestBracket = () => {
             (registration) => registration.contestId === contestId
         );
 
+        const statusColors = {
+            active: 'from-cyan-500 to-blue-600',
+            winner: 'from-amber-400 to-yellow-500',
+            eliminated: 'from-red-500 to-red-700',
+            qualified: 'from-green-500 to-emerald-600'
+        };
+
+        const borderColors = {
+            active: 'border-cyan-400',
+            winner: 'border-amber-400',
+            eliminated: 'border-red-400',
+            qualified: 'border-green-400'
+        };
+
+        const glowColors = {
+            active: 'shadow-cyan-500/50',
+            winner: 'shadow-amber-500/60',
+            eliminated: 'shadow-red-500/30',
+            qualified: 'shadow-green-500/50'
+        };
+
         return (
-            <div className="bg-gray-700 rounded-lg w-full mx-auto flex items-center justify-between text-white font-medium overflow-hidden text-ellipsis px-4 py-2">
-                <div>
-                    <span>{user.name || "Player"}</span>
-                    {contestRegistration && (
-                        <span className="ml-2 text-xs text-gray-400">
-                            {new Date(contestRegistration.registeredAt).toLocaleDateString()}
-                        </span>
-                    )}
-                </div>
-                {isAdmin && (
-                    <div className="ml-4">
-                        <select
-                            className="bg-gray-800 text-white text-sm rounded px-2 py-1 border border-gray-600"
-                            value={contestRegistration?.status || ""}
-                            onChange={(e) => handleStatusChange(user._id, e.target.value)}
-                            disabled={statusChangeLoading}
-                        >
-                            <option value="primary">Primary</option>
-                            <option value="semi-finalists">Semi-finalist</option>
-                            <option value="finalists">Finalist</option>
-                        </select>
+            <div className={`relative bg-gradient-to-r ${statusColors[status]} rounded-xl w-full mx-auto overflow-hidden transform transition-all duration-300 hover:scale-105 ${borderColors[status]} border-2 shadow-xl ${glowColors[status]}`}>
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse"></div>
+                
+                {/* Main content */}
+                <div className="relative flex items-center justify-between px-6 py-4 bg-black/20 backdrop-blur-sm">
+                    <div className="flex items-center space-x-4">
+                        {/* Avatar placeholder */}
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${statusColors[status]} flex items-center justify-center border-2 ${borderColors[status]} shadow-lg`}>
+                            <span className="text-black font-bold text-lg">
+                                {(user.name || "P").charAt(0).toUpperCase()}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-white font-bold text-lg tracking-wide">
+                                    {user.name || "Player"}
+                                </span>
+                                {isWinner && (
+                                    <div className="flex items-center space-x-1">
+                                        <svg className="w-5 h-5 text-amber-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <span className="text-amber-400 font-bold text-sm">CHAMPION</span>
+                                    </div>
+                                )}
+                            </div>
+                            {contestRegistration && (
+                                <div className="flex items-center space-x-2 mt-1">
+                                    <div className={`w-2 h-2 rounded-full ${status === 'active' ? 'bg-cyan-400' : status === 'winner' ? 'bg-amber-400' : status === 'eliminated' ? 'bg-red-400' : 'bg-green-400'} animate-pulse`}></div>
+                                    <span className="text-gray-300 text-xs font-mono">
+                                        REGISTERED: {new Date(contestRegistration.registeredAt).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                )}
+
+                    {/* Status indicator */}
+                    <div className="flex flex-col items-end space-y-2">
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-wider ${
+                            status === 'active' ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400' :
+                            status === 'winner' ? 'bg-amber-500/30 text-amber-200 border border-amber-400' :
+                            status === 'eliminated' ? 'bg-red-500/30 text-red-200 border border-red-400' :
+                            'bg-green-500/30 text-green-200 border border-green-400'
+                        }`}>
+                            {status.toUpperCase()}
+                        </div>
+                        
+                        {isAdmin && (
+                            <div className="opacity-80 hover:opacity-100 transition-opacity">
+                                <select
+                                    className="bg-black/50 text-white text-xs rounded-lg px-2 py-1 border border-gray-500 backdrop-blur-sm focus:border-cyan-400 focus:outline-none"
+                                    value={contestRegistration?.status || ""}
+                                    onChange={(e) => handleStatusChange(user._id, e.target.value)}
+                                    disabled={statusChangeLoading}
+                                >
+                                    <option value="primary">Primary</option>
+                                    <option value="semi-finalists">Semi-finalist</option>
+                                    <option value="finalists">Finalist</option>
+                                </select>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Animated border glow effect */}
+                <div className={`absolute inset-0 rounded-xl border-2 ${borderColors[status]} opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
             </div>
         );
     };
 
-    // Helper function to render a single match for the new match display section
+    // Helper function to render a single match for the futuristic match display section
     const renderMatchDisplay = (match) => {
-        const user1 = getUserDetailsByUid(match.user1); // Changed from getUserDetailsById
-        const user2 =
-            match.user2 === "Bye" ? "Bye" : getUserDetailsByUid(match.user2); // Changed from getUserDetailsById
+        const user1 = getUserDetailsByUid(match.user1);
+        const user2 = match.user2 === "Bye" ? "Bye" : getUserDetailsByUid(match.user2);
 
         const user1Name = user1 ? user1.name : match.user1 ? "Player 1" : "N/A";
         const user2Name = user2 === "Bye" ? "BYE" : user2 ? user2.name : "N/A";
 
-        // Winner ID is stored in match.winner
-        const isUser1Winner =
-            match.winner && match.user1 && match.winner === match.user1;
-        const isUser2Winner =
-            match.winner &&
-            match.user2 &&
-            match.user2 !== "Bye" &&
-            match.winner === match.user2;
+        const isUser1Winner = match.winner && match.user1 && match.winner === match.user1;
+        const isUser2Winner = match.winner && match.user2 && match.user2 !== "Bye" && match.winner === match.user2;
 
         return (
             <div
                 key={match.matchId}
-                className="bg-gray-800 p-3 rounded-lg shadow border border-gray-700 mb-3"
+                className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-cyan-500/30 overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/20"
             >
-                <div className="text-xs text-gray-400 mb-1">
-                    Match ID: {match.matchId} (Round: {match.round || currentRound})
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/5 to-transparent animate-pulse"></div>
+                
+                {/* Match header */}
+                <div className="relative p-4 bg-black/30 backdrop-blur-sm border-b border-cyan-500/20">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-cyan-400 rounded-full animate-ping"></div>
+                            <span className="text-cyan-400 font-mono text-sm font-bold">
+                                MATCH #{match.matchId}
+                            </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-400 font-mono">ROUND</span>
+                            <span className="text-amber-400 font-bold">{match.round || currentRound}</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex flex-col space-y-2">
+
+                {/* Players section */}
+                <div className="relative p-4 space-y-3">
                     {/* Player 1 */}
-                    <div
-                        className={`p-2 rounded ${isUser1Winner
-                                ? "bg-amber-500 bg-opacity-30 border border-amber-400"
-                                : "bg-gray-700"
-                            }`}
-                    >
-                        <span>{user1Name}</span>
-                        {isUser1Winner && (
-                            <span className="text-amber-400 font-bold ml-2">★ Winner</span>
-                        )}
+                    <div className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${
+                        isUser1Winner 
+                            ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-amber-400 shadow-lg shadow-amber-500/20" 
+                            : "bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-gray-600 hover:border-cyan-400/50"
+                    }`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                                    isUser1Winner ? "bg-amber-400 text-black" : "bg-cyan-500 text-white"
+                                }`}>
+                                    {user1Name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <span className="text-white font-bold">{user1Name}</span>
+                                    {isUser1Winner && (
+                                        <div className="flex items-center space-x-1 mt-1">
+                                            <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span className="text-amber-400 font-bold text-xs">VICTOR</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {isUser1Winner && (
+                                <div className="text-amber-400 font-bold text-lg animate-pulse">👑</div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Player 2 or Bye */}
-                    <div
-                        className={`p-2 rounded ${isUser2Winner
-                                ? "bg-amber-500 bg-opacity-30 border border-amber-400"
-                                : user2 === "Bye"
-                                    ? "bg-gray-700 opacity-60"
-                                    : "bg-gray-700"
-                            }`}
-                    >
-                        <span>{user2Name}</span>
-                        {isUser2Winner && (
-                            <span className="text-amber-400 font-bold ml-2">★ Winner</span>
-                        )}
+                    {/* VS Divider */}
+                    <div className="flex items-center justify-center py-2">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-8 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+                            <span className="text-cyan-400 font-bold text-sm px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30">
+                                VS
+                            </span>
+                            <div className="w-8 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+                        </div>
+                    </div>
+
+                    {/* Player 2 */}
+                    <div className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${
+                        isUser2Winner 
+                            ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border-amber-400 shadow-lg shadow-amber-500/20" 
+                            : user2 === "Bye"
+                                ? "bg-gradient-to-r from-gray-800/30 to-gray-700/30 border-gray-700 opacity-60"
+                                : "bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-gray-600 hover:border-cyan-400/50"
+                    }`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                                    isUser2Winner ? "bg-amber-400 text-black" : 
+                                    user2 === "Bye" ? "bg-gray-600 text-gray-400" : "bg-purple-500 text-white"
+                                }`}>
+                                    {user2Name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <span className={`font-bold ${user2 === "Bye" ? "text-gray-400" : "text-white"}`}>
+                                        {user2Name}
+                                    </span>
+                                    {isUser2Winner && (
+                                        <div className="flex items-center space-x-1 mt-1">
+                                            <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span className="text-amber-400 font-bold text-xs">VICTOR</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {isUser2Winner && (
+                                <div className="text-amber-400 font-bold text-lg animate-pulse">👑</div>
+                            )}
+                        </div>
                     </div>
                 </div>
-                <div className="text-sm text-gray-300 mt-2">
-                    Status:{" "}
-                    <span
-                        className={
-                            match.status === "completed"
-                                ? "text-green-400"
-                                : "text-yellow-400"
-                        }
-                    >
-                        {match.status}
-                    </span>
-                </div>
 
-                {isAdmin &&
-                    match.status === "pending" &&
-                    match.user1 &&
-                    match.user2 &&
-                    match.user2 !== "Bye" && (
-                        <div className="mt-3 flex gap-2">
+                {/* Match status */}
+                <div className="relative p-4 bg-black/20 backdrop-blur-sm border-t border-cyan-500/20">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                            <span className="text-gray-400 text-sm font-mono">STATUS:</span>
+                            <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-bold ${
+                                match.status === "completed"
+                                    ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                    : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                            }`}>
+                                <div className={`w-2 h-2 rounded-full animate-pulse ${
+                                    match.status === "completed" ? "bg-green-400" : "bg-yellow-400"
+                                }`}></div>
+                                {match.status.toUpperCase()}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Admin controls */}
+                    {isAdmin && match.status === "pending" && match.user1 && match.user2 && match.user2 !== "Bye" && (
+                        <div className="mt-4 flex flex-col sm:flex-row gap-3">
                             <button
-                                onClick={() =>
-                                    updateMatchResult(currentRound, match.matchId, match.user1)
-                                } // Pass user1 ID
+                                onClick={() => updateMatchResult(currentRound, match.matchId, match.user1)}
                                 disabled={matchesLoading}
-                                className="bg-blue-500 hover:bg-blue-400 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
+                                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                             >
-                                Set {user1Name} as Winner
+                                🏆 {user1Name} Wins
                             </button>
                             <button
-                                onClick={() =>
-                                    updateMatchResult(currentRound, match.matchId, match.user2)
-                                } // Pass user2 ID
+                                onClick={() => updateMatchResult(currentRound, match.matchId, match.user2)}
                                 disabled={matchesLoading}
-                                className="bg-purple-500 hover:bg-purple-400 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
+                                className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-bold px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                             >
-                                Set {user2Name} as Winner
+                                🏆 {user2Name} Wins
                             </button>
                         </div>
                     )}
+                </div>
             </div>
         );
     };
@@ -590,163 +711,243 @@ const ContestBracket = () => {
                 />
             </div>
 
-            {/* Collapsible Tournament Sections */}
-            <div className="max-w-2xl mx-auto px-4 space-y-4 mb-10">
-                {/* Finals Section */}
-                <div className="border-2 border-amber-500 rounded-lg overflow-hidden shadow-lg">
-                    <button
-                        onClick={() => toggleSection("finals")}
-                        className="w-full flex justify-between items-center p-4 bg-gray-800 hover:bg-gray-700 transition-colors"
-                    >
-                        <span className="text-xl font-bold text-amber-400">FINALS</span>
-                        <span className="text-amber-400 text-xl">
-                            {openSection === "finals" ? "▼" : "▶"}
-                        </span>
-                    </button>
-
-                    {openSection === "finals" && (
-                        <div
-                            className={`p-4 bg-gray-900 space-y-3 ${finalists.length > 5 ? "max-h-60 overflow-y-scroll" : ""
-                                }`}
-                        >
-                            {finalists.length > 0 ? (
-                                finalists.map((user, index) => (
-                                    <div key={index} className="mb-2">
-                                        {renderUser(user)}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-gray-400 text-center py-2">
-                                    No finalists yet
-                                </div>
-                            )}
+            {/* Futuristic Tournament Arena */}
+            <div className="max-w-7xl mx-auto px-4 mb-10">
+                <div className="relative">
+                    {/* Arena Background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-purple-900/20 to-blue-900/20 rounded-3xl backdrop-blur-sm border border-cyan-500/30"></div>
+                    
+                    {/* Header */}
+                    <div className="relative p-8 text-center">
+                        <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                            BATTLE ARENA
+                        </h2>
+                        <div className="flex justify-center space-x-8 mb-8">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-cyan-400">{primaryUsers.length}</div>
+                                <div className="text-sm text-gray-400">FIGHTERS</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-purple-400">{semiFinalists.length}</div>
+                                <div className="text-sm text-gray-400">SEMI-FINALISTS</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-amber-400">{finalists.length}</div>
+                                <div className="text-sm text-gray-400">FINALISTS</div>
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
 
-                {/* Semi-Finals Section */}
-                <div className="border-2 border-amber-500 rounded-lg overflow-hidden shadow-lg">
-                    <button
-                        onClick={() => toggleSection("semifinals")}
-                        className="w-full flex justify-between items-center p-4 bg-gray-800 hover:bg-gray-700 transition-colors"
-                    >
-                        <span className="text-xl font-bold text-amber-400">
-                            SEMI-FINALS
-                        </span>
-                        <span className="text-amber-400 text-xl">
-                            {openSection === "semifinals" ? "▼" : "▶"}
-                        </span>
-                    </button>
-
-                    {openSection === "semifinals" && (
-                        <div
-                            className={`p-4 bg-gray-900 space-y-3 ${semiFinalists.length > 5 ? "max-h-60 overflow-y-scroll" : ""
-                                }`}
-                        >
-                            {semiFinalists.length > 0 ? (
-                                semiFinalists.map((user, index) => (
-                                    <div key={index} className="mb-2">
-                                        {renderUser(user)}
+                    {/* Tournament Grid */}
+                    <div className="relative p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Primary Round Arena */}
+                        <div className="space-y-4">
+                            <div className="text-center mb-6">
+                                <h3 className="text-xl font-bold text-cyan-400 mb-2">PRIMARY ARENA</h3>
+                                <div className="h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-full"></div>
+                            </div>
+                            <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                                {primaryUsers.length > 0 ? (
+                                    primaryUsers.map((user, index) => (
+                                        <div key={index} className="transform transition-all duration-300 hover:translate-x-2">
+                                            {renderUser(user, false, 'active')}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <div className="w-16 h-16 mx-auto mb-4 border-2 border-dashed border-gray-600 rounded-full flex items-center justify-center">
+                                            <span className="text-2xl">⚔️</span>
+                                        </div>
+                                        <p>Awaiting brave warriors...</p>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-gray-400 text-center py-2">
-                                    No semi-finalists yet
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Primary Round Section */}
-                <div className="border-2 border-amber-500 rounded-lg overflow-hidden shadow-lg">
-                    <button
-                        onClick={() => toggleSection("primary")}
-                        className="w-full flex justify-between items-center p-4 bg-gray-800 hover:bg-gray-700 transition-colors"
-                    >
-                        <span className="text-xl font-bold text-amber-400">
-                            PRIMARY ROUND PARTICIPANTS
-                        </span>
-                        <span className="text-amber-400 text-xl">
-                            {openSection === "primary" ? "▼" : "▶"}
-                        </span>
-                    </button>
-
-                    {openSection === "primary" && (
-                        <div
-                            className={`p-4 bg-gray-900 space-y-3 ${primaryUsers.length > 5 ? "max-h-60 overflow-y-scroll" : ""
-                                }`}
-                        >
-                            {primaryUsers.length > 0 ? (
-                                primaryUsers.map((user, index) => (
-                                    <div key={index} className="mb-2">
-                                        {renderUser(user)}
+                        {/* Semi-Finals Arena */}
+                        <div className="space-y-4">
+                            <div className="text-center mb-6">
+                                <h3 className="text-xl font-bold text-purple-400 mb-2">ELITE ARENA</h3>
+                                <div className="h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent rounded-full"></div>
+                            </div>
+                            <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                                {semiFinalists.length > 0 ? (
+                                    semiFinalists.map((user, index) => (
+                                        <div key={index} className="transform transition-all duration-300 hover:translate-x-2">
+                                            {renderUser(user, false, 'qualified')}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <div className="w-16 h-16 mx-auto mb-4 border-2 border-dashed border-gray-600 rounded-full flex items-center justify-center">
+                                            <span className="text-2xl">🏆</span>
+                                        </div>
+                                        <p>Elite fighters emerge here...</p>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-gray-400 text-center py-2">
-                                    No primary participants yet
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    )}
+
+                        {/* Finals Arena */}
+                        <div className="space-y-4">
+                            <div className="text-center mb-6">
+                                <h3 className="text-xl font-bold text-amber-400 mb-2">CHAMPIONSHIP ARENA</h3>
+                                <div className="h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full"></div>
+                            </div>
+                            <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                                {finalists.length > 0 ? (
+                                    finalists.map((user, index) => (
+                                        <div key={index} className="transform transition-all duration-300 hover:translate-x-2">
+                                            {renderUser(user, index === 0, index === 0 ? 'winner' : 'qualified')}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <div className="w-16 h-16 mx-auto mb-4 border-2 border-dashed border-gray-600 rounded-full flex items-center justify-center">
+                                            <span className="text-2xl">👑</span>
+                                        </div>
+                                        <p>The throne awaits its champion...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Arena Connections - Visual Lines */}
+                    <div className="absolute inset-0 pointer-events-none hidden lg:block">
+                        <svg className="w-full h-full" style={{zIndex: -1}}>
+                            {/* Connection lines between arenas */}
+                            <defs>
+                                <linearGradient id="connectionGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="cyan" stopOpacity="0.3"/>
+                                    <stop offset="100%" stopColor="purple" stopOpacity="0.3"/>
+                                </linearGradient>
+                                <linearGradient id="connectionGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="purple" stopOpacity="0.3"/>
+                                    <stop offset="100%" stopColor="gold" stopOpacity="0.3"/>
+                                </linearGradient>
+                            </defs>
+                            <line x1="33%" y1="50%" x2="66%" y2="50%" stroke="url(#connectionGradient1)" strokeWidth="2" className="animate-pulse"/>
+                            <line x1="66%" y1="50%" x2="100%" y2="50%" stroke="url(#connectionGradient2)" strokeWidth="2" className="animate-pulse"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
 
-            {/* Current Round Matches Display */}
-            <div className="max-w-4xl mx-auto px-4 mt-12 mb-10">
-                <h2 className="text-3xl font-bold mb-6 text-center text-amber-400">
-                    {currentRound > 0
-                        ? `Current Round: ${currentRound}`
-                        : "Tournament Not Started"}
-                </h2>
+            {/* Enhanced Tournament Control Center */}
+            <div className="max-w-6xl mx-auto px-4 mt-12 mb-10">
+                {/* Tournament Header */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center space-x-4 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-amber-500/10 rounded-2xl p-6 border border-cyan-500/30 backdrop-blur-sm">
+                        <div className="w-4 h-4 bg-cyan-400 rounded-full animate-ping"></div>
+                        <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-amber-400 bg-clip-text text-transparent">
+                            {currentRound > 0 ? `ROUND ${currentRound} - COMBAT ZONE` : "TOURNAMENT INITIALIZATION"}
+                        </h2>
+                        <div className="w-4 h-4 bg-amber-400 rounded-full animate-ping"></div>
+                    </div>
+                </div>
 
+                {/* Admin Control Panel */}
                 {isAdmin && (
-                    <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-                        <button
-                            onClick={startNewRound}
-                            disabled={matchesLoading}
-                            className="bg-green-500 hover:bg-green-400 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50"
-                        >
-                            {currentRound === 0
-                                ? "Start Tournament (Round 1)"
-                                : `Start Next Round (${currentRound + 1})`}
-                        </button>
-                        {matches.length > 0 &&
-                            matches.some((m) => m.status === "pending") && (
+                    <div className="bg-gradient-to-r from-gray-900/80 via-gray-800/80 to-gray-900/80 rounded-2xl p-6 mb-8 border border-cyan-500/20 backdrop-blur-sm">
+                        <div className="text-center mb-4">
+                            <h3 className="text-xl font-bold text-cyan-400 mb-2">ADMIN COMMAND CENTER</h3>
+                            <div className="h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                            <button
+                                onClick={startNewRound}
+                                disabled={matchesLoading}
+                                className="relative bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-green-500/20"
+                            >
+                                <div className="flex items-center justify-center space-x-2">
+                                    <span>⚡</span>
+                                    <span>
+                                        {currentRound === 0
+                                            ? "INITIATE TOURNAMENT"
+                                            : `ADVANCE TO ROUND ${currentRound + 1}`}
+                                    </span>
+                                    <span>⚡</span>
+                                </div>
+                            </button>
+                            {matches.length > 0 && matches.some((m) => m.status === "pending") && (
                                 <button
                                     onClick={autoResolveAllMatches}
                                     disabled={matchesLoading}
-                                    className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50"
+                                    className="relative bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-yellow-500/20"
                                 >
-                                    Auto-Resolve Current Round
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <span>🎲</span>
+                                        <span>AUTO-RESOLVE CURRENT ROUND</span>
+                                        <span>🎲</span>
+                                    </div>
                                 </button>
                             )}
+                        </div>
                     </div>
                 )}
 
+                {/* Loading State */}
                 {matchesLoading && currentRound > 0 && (
-                    <div className="flex justify-center my-6">
-                        <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-amber-300"></div>
+                    <div className="flex flex-col items-center justify-center my-8 p-8 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-2xl border border-cyan-500/20">
+                        <div className="relative">
+                            <div className="w-16 h-16 border-4 border-cyan-500/20 rounded-full animate-spin"></div>
+                            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-cyan-400 rounded-full animate-spin"></div>
+                        </div>
+                        <p className="text-cyan-400 font-mono mt-4">PROCESSING COMBAT DATA...</p>
                     </div>
                 )}
 
+                {/* No Matches State */}
                 {currentRound > 0 && !matchesLoading && matches.length === 0 && (
-                    <div className="text-gray-400 text-center py-4">
-                        No matches found for this round. Try starting the round.
+                    <div className="text-center py-8 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl border border-gray-600">
+                        <div className="text-6xl mb-4">⚔️</div>
+                        <p className="text-gray-400 text-lg">
+                            No active matches found. Initiate the round to begin combat.
+                        </p>
                     </div>
                 )}
 
+                {/* Active Matches Display */}
                 {matches.length > 0 && (
-                    <div
-                        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${
-                            matches.length > 6 ? "max-h-[70vh] overflow-y-auto" : ""
-                        }`}
-                    >
-                        {matches.map((match) => renderMatchDisplay(match))}
+                    <div className="space-y-6">
+                        <div className="text-center">
+                            <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/30">
+                                <span className="text-2xl">⚔️</span>
+                                <span className="text-xl font-bold text-purple-400">ACTIVE COMBATS</span>
+                                <span className="text-2xl">⚔️</span>
+                            </div>
+                        </div>
+                        <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ${
+                            matches.length > 6 ? "max-h-[80vh] overflow-y-auto custom-scrollbar" : ""
+                        }`}>
+                            {matches.map((match) => renderMatchDisplay(match))}
+                        </div>
                     </div>
                 )}
             </div>
+
+            {/* Add custom scrollbar styles */}
+            <style jsx>{`
+                .custom-scrollbar {
+                    scrollbar-width: thin;
+                    scrollbar-color: #06b6d4 #1f2937;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 8px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #1f2937;
+                    border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: linear-gradient(to bottom, #06b6d4, #3b82f6);
+                    border-radius: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(to bottom, #0891b2, #2563eb);
+                }
+            `}</style>
 
             <div className="mt-8 text-3xl font-bold text-center tracking-wide text-amber-400">
                 {contestTitle.toUpperCase().replace(/-/g, " ")}
