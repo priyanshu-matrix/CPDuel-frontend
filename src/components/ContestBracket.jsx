@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URLS } from "../config/server";
 
 const TROPHY_IMG = "https://img.icons8.com/fluency/96/trophy.png";
 
@@ -21,7 +22,7 @@ const ContestBracket = () => {
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
                 const response = await axios.get(
-                    "http://localhost:3000/api/users/all",
+                    API_URLS.USERS.ALL,
                     { headers }
                 );
                 setUsers(response.data);
@@ -49,7 +50,7 @@ const ContestBracket = () => {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
             try {
                 const response = await axios.get(
-                    `http://localhost:3000/api/contests/getcon/${contestId}`,
+                    API_URLS.CONTESTS.GET_BY_ID(contestId),
                     { headers }
                 );
                 setContestTitle(response.data.contest.title);
@@ -73,7 +74,7 @@ const ContestBracket = () => {
             }
             try {
                 const response = await axios.get(
-                    "http://localhost:3000/api/users/info",
+                    API_URLS.USERS.INFO,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }
@@ -124,7 +125,7 @@ const ContestBracket = () => {
             }
 
             await axios.post(
-                "http://localhost:3000/api/users/changeUserStatus",
+                API_URLS.USERS.CHANGE_STATUS,
                 {
                     uid: apiUserUid, // Use the correct Firebase-like UID for the API
                     contestId,
@@ -174,7 +175,7 @@ const ContestBracket = () => {
             }
 
             const response = await axios.get(
-                `http://localhost:3000/api/contests/getcon/${contestId}`,
+                API_URLS.CONTESTS.GET_BY_ID(contestId),
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -218,7 +219,7 @@ const ContestBracket = () => {
             
             // Step 2: Start the actual new round
             const response = await axios.post(
-                `http://localhost:3000/api/contests/startContest`,
+                API_URLS.CONTESTS.START_CONTEST,
                 {
                     ContestID: contestId,
                 },
@@ -256,7 +257,7 @@ const ContestBracket = () => {
 
             const response = await axios.post(
                 // Corrected from axios.postut
-                `http://localhost:3000/api/contests/updateMatchWinner`, // Updated endpoint
+                API_URLS.CONTESTS.UPDATE_MATCH_WINNER, // Updated endpoint
                 {
                     ContestID: contestId, // Updated payload
                     matchID: matchId, // Updated payload
@@ -369,7 +370,7 @@ const ContestBracket = () => {
                 }
 
                 await axios.post(
-                    "http://localhost:3000/api/users/changeUserStatus",
+                    API_URLS.USERS.CHANGE_STATUS,
                     {
                         uid: apiUserUid,
                         contestId,
@@ -402,7 +403,7 @@ const ContestBracket = () => {
                 
                 if (apiUserUid) {
                     await axios.post(
-                        "http://localhost:3000/api/users/changeUserStatus",
+                        API_URLS.USERS.CHANGE_STATUS,
                         {
                             uid: apiUserUid,
                             contestId,
@@ -470,7 +471,7 @@ const ContestBracket = () => {
                 for (const winnerUid of winners) {
                     try {
                         await axios.post(
-                            "http://localhost:3000/api/users/changeUserStatus",
+                            API_URLS.USERS.CHANGE_STATUS,
                             {
                                 uid: winnerUid,
                                 contestId,
@@ -491,7 +492,7 @@ const ContestBracket = () => {
                 
                 try {
                     await axios.post(
-                        "http://localhost:3000/api/users/changeUserStatus",
+                        API_URLS.USERS.CHANGE_STATUS,
                         {
                             uid: winners[0],
                             contestId,
@@ -521,7 +522,7 @@ const ContestBracket = () => {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             const response = await axios.get(
-                "http://localhost:3000/api/users/all",
+                API_URLS.USERS.ALL,
                 { headers }
             );
             setUsers(response.data);
@@ -547,7 +548,7 @@ const ContestBracket = () => {
                 
                 if (apiUserUid) {
                     await axios.post(
-                        "http://localhost:3000/api/users/changeUserStatus",
+                        API_URLS.USERS.CHANGE_STATUS,
                         {
                             uid: apiUserUid,
                             contestId,
@@ -598,7 +599,7 @@ const ContestBracket = () => {
                 if (!token) return;
 
                 const contestResponse = await axios.get(
-                    `http://localhost:3000/api/contests/getcon/${contestId}`,
+                    API_URLS.CONTESTS.GET_BY_ID(contestId),
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
 

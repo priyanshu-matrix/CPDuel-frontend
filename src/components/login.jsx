@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_URLS } from "../config/server";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -51,7 +52,7 @@ const Login = () => {
             const token = await user.getIdToken();
 
             // Send the token to your backend for verification and to retrieve user roles/permissions
-            const response = await fetch("http://localhost:3000/api/users/login", {
+            const response = await fetch(API_URLS.USERS.LOGIN, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -113,7 +114,7 @@ const Login = () => {
             const token = await user.getIdToken();
 
             // Send the token to your backend for verification and to retrieve user roles/permissions
-            const response = await fetch("http://localhost:3000/api/users/signup", {
+            const response = await fetch(API_URLS.USERS.SIGNUP, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
