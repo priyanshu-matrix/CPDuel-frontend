@@ -944,12 +944,6 @@ const ContestBracket = () => {
             {/* Buttons */}
             <div className="flex flex-col md:flex-row justify-center gap-6 mb-10">
                 <button
-                    className="bg-gray-700 text-white px-8 py-3 rounded-full hover:bg-gray-600 transition text-lg font-semibold"
-                    onClick={() => navigate(`/contest/${contestId}/leaderboard`)}
-                >
-                    Leaderboard
-                </button>
-                <button
                     className="bg-amber-400 text-gray-900 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-amber-300 transition text-lg"
                     onClick={() => navigate(`/contest/begin/${contestId}`)}
                 >
