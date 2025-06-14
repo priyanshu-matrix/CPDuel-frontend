@@ -209,16 +209,39 @@ const ContestCard = ({ contest }) => {
         }
     };
 
+    const handleDirectEntry = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const contestIdentifier =  contest._id;
+
+            // Navigate directly to the contest as admin
+            navigate(`/contest/${contestIdentifier}`);
+            toast.success("Entered contest as admin");
+        } catch (error) {
+            console.error("Error entering contest:", error);
+            toast.error("Failed to enter contest");
+        }
+    };
+
     return (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg max-w-xl mx-auto hover:border-amber-400 transition-all relative">
             {isAdmin && (
-                <button
-                    onClick={() => navigate(`/contest/problemlist/${contest._id}`)}
-                    className="absolute top-4 right-4 bg-blue-500 text-white font-semibold px-3 py-1 rounded-md hover:bg-blue-400 transition text-sm"
-                    title="Manage Problems"
-                >
-                    Manage Problems
-                </button>
+                <div className="absolute top-4 right-4 flex gap-2">
+                    <button
+                        onClick={() => navigate(`/contest/problemlist/${contest._id}`)}
+                        className="bg-blue-500 text-white font-semibold px-3 py-1 rounded-md hover:bg-blue-400 transition text-sm"
+                        title="Manage Problems"
+                    >
+                        Manage Problems
+                    </button>
+                    <button
+                        onClick={handleDirectEntry}
+                        className="bg-purple-500 text-white font-semibold px-3 py-1 rounded-md hover:bg-purple-400 transition text-sm"
+                        title="Enter Contest Directly (Admin)"
+                    >
+                        Direct Entry
+                    </button>
+                </div>
             )}
             <h2 className="text-2xl font-bold text-amber-400 mb-2 mt-8">
                 {" "}

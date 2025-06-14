@@ -67,11 +67,6 @@ const Login = () => {
             } else {
                 toast.success("Logged in successfully!");
             }
-            // AuthContext will handle token management automatically
-            // Small delay to show toast before navigation
-            setTimeout(() => {
-                navigate('/home');
-            }, 1500);
         } catch (error) {
             console.error("Error logging in:", error);
             toast.error("Invalid credentials. Please try again.");
@@ -141,9 +136,6 @@ const Login = () => {
             }
             // AuthContext will handle token management automatically
             // Small delay to show toast before navigation
-            setTimeout(() => {
-                navigate('/home');
-            }, 1500);
         } catch (error) {
             console.error("Error logging in with Google:", error);
             toast.error("Failed to login with Google.");
