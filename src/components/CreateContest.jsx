@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { API_URLS } from "../config/server";
 
 const CreateContest = () => {
     const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ const CreateContest = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch("http://localhost:3000/api/contests/add", {
+            const response = await fetch(API_URLS.CONTESTS.ADD, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

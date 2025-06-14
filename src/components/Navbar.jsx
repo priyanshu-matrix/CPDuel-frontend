@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { API_URLS } from "../config/server";
 
 const navLinks = [
     { href: "/home", label: "Home" },
@@ -42,7 +43,7 @@ const Navbar = () => {
                     return;
                 }
 
-                const response = await fetch("http://localhost:3000/api/users/info", {
+                const response = await fetch(API_URLS.USERS.INFO, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",

@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import ProblemForm from "./ProblemForm.jsx";
 import ViewQuestionComponent from "./ViewQuestionComponent.tsx";
+import { API_URLS } from "../config/server";
 
 const ContestList = () => {
     const { contestId } = useParams();
@@ -50,7 +51,7 @@ const ContestList = () => {
                 const token = localStorage.getItem("token");
 
                 const response = await axios.get(
-                    "http://localhost:3000/api/problems/getall",
+                    API_URLS.PROBLEMS.GET_ALL,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -135,7 +136,7 @@ const ContestList = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(
-                "http://localhost:3000/api/contests/addProblemToContest",
+                API_URLS.CONTESTS.ADD_PROBLEM,
                 {
                     method: "POST",
                     headers: {
@@ -178,7 +179,7 @@ const ContestList = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(
-                "http://localhost:3000/api/contests/removeProblemFromContest",
+                API_URLS.CONTESTS.REMOVE_PROBLEM,
                 {
                     method: "POST",
                     headers: {
@@ -212,7 +213,7 @@ const ContestList = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(
-                "http://localhost:3000/api/problems/edit",
+                API_URLS.PROBLEMS.EDIT,
                 {
                     method: "PUT",
                     headers: {
@@ -253,7 +254,7 @@ const ContestList = () => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(
-                "http://localhost:3000/api/problems/delete",
+                API_URLS.PROBLEMS.DELETE,
                 {
                     method: "DELETE",
                     headers: {
@@ -292,7 +293,7 @@ const ContestList = () => {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             const response = await axios.get(
-                `http://localhost:3000/api/contests/getContestProblems/${contestId}`,
+                API_URLS.CONTESTS.GET_CONTEST_PROBLEMS(contestId),
                 { headers }
             );
             const data = response.data;

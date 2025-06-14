@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../utils/firebase/firebase";
 import { toast } from "react-toastify";
+import { API_URLS } from "../config/server";
 
 const Signup = () => {
     const [username, setUsername] = useState("");
@@ -20,7 +21,7 @@ const Signup = () => {
             const token = await user.getIdToken();
 
             // Send the token to your backend for verification and to retrieve user roles/permissions
-            const response = await fetch("http://localhost:3000/api/users/signup", {
+            const response = await fetch(API_URLS.USERS.SIGNUP, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

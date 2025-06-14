@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AiFillEdit, AiFillDelete } from "react-icons/ai";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { API_URLS } from "../config/server";
 import "react-toastify/dist/ReactToastify.css";
 
 const ContestCard = ({ contest }) => {
@@ -45,7 +46,7 @@ const ContestCard = ({ contest }) => {
             }
             try {
                 const response = await axios.get(
-                    "http://localhost:3000/api/users/info",
+                    API_URLS.USERS.INFO,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }
@@ -71,7 +72,7 @@ const ContestCard = ({ contest }) => {
                 const token = localStorage.getItem("token");
                 const contestIdentifier = contest.id || contest._id;
                 const response = await fetch(
-                    `http://localhost:3000/api/users/checkContestRegistration/${contestIdentifier}`,
+                    API_URLS.USERS.CHECK_CONTEST_REGISTRATION(contestIdentifier),
                     {
                         method: "GET",
                         headers: {
@@ -115,7 +116,7 @@ const ContestCard = ({ contest }) => {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:3000/api/users/registerContest",
+                API_URLS.USERS.REGISTER_CONTEST,
                 {
                     method: "POST",
                     headers: {
@@ -149,7 +150,7 @@ const ContestCard = ({ contest }) => {
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(
-                `http://localhost:3000/api/contests/edit/${contest._id}`,
+                API_URLS.CONTESTS.EDIT(contest._id),
                 {
                     method: "PUT",
                     headers: {
@@ -179,7 +180,7 @@ const ContestCard = ({ contest }) => {
         if (window.confirm("Are you sure you want to delete this contest?")) {
             try {
                 const token = localStorage.getItem("token");
-                const url = `http://localhost:3000/api/contests/delete/${contest._id}`;
+                const url = API_URLS.CONTESTS.DELETE(contest._id);
                 const response = await fetch(url, {
                     method: "DELETE",
                     headers: {

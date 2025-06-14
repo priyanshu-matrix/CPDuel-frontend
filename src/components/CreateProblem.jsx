@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { API_URLS } from "../config/server";
 
 const CreateProblem = () => {
     const [formData, setFormData] = useState({
@@ -73,7 +74,7 @@ const CreateProblem = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/problems/add', {
+            const response = await fetch(API_URLS.PROBLEMS.ADD, {
                 method: 'POST',
                 headers: {
                     // "Content-Type": "application/json", // Removed for FormData

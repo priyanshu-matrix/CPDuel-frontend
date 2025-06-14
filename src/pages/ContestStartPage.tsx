@@ -6,6 +6,7 @@ import { InlineMath, BlockMath } from "react-katex";
 import axios from "axios";
 import io from "socket.io-client";
 import { toast } from "react-toastify";
+import { API_URLS, getSocketUrl } from "../config/server";
 
 // Define an interface for the problem data structure
 interface ProblemExample {
@@ -107,7 +108,7 @@ const ContestStartPage = () => {
 
                 // Step 0: Fetch User ID first
                 const userInfoResponse = await axios.get(
-                    `http://localhost:3000/api/users/info`,
+                    API_URLS.USERS.INFO,
                     { headers }
                 );
 
@@ -122,7 +123,7 @@ const ContestStartPage = () => {
 
                 // Step 1: Fetch User Match Info
                 const matchInfoResponse = await axios.post(
-                    `http://localhost:3000/api/contests/getUserMatchInfo`,
+                    API_URLS.CONTESTS.GET_USER_MATCH_INFO,
                     { 
                         ContestID: contestId,
                         uid : Uid
@@ -155,7 +156,7 @@ const ContestStartPage = () => {
 
                 // Step 2: Fetch Problem Data using obtained matchId and userId
                 const problemResponse = await axios.post(
-                    `http://localhost:3000/api/problems/get`,
+                    API_URLS.PROBLEMS.GET,
                     { 
                         id : problemId
                     },
@@ -227,7 +228,7 @@ const ContestStartPage = () => {
         if (!matchDetails?.userId) return;
 
         // Establish socket connection
-        const SERVER_URL = 'http://localhost:3000'; // Replace with your actual server URL
+        const SERVER_URL = getSocketUrl();
         const socketConnection = io(SERVER_URL);
         setSocket(socketConnection);
 
@@ -268,7 +269,7 @@ const ContestStartPage = () => {
                         const headers = token ? { Authorization: `Bearer ${token}` } : {};
                         
                         const response = await axios.post(
-                            `http://localhost:3000/api/users/getUserByUid`,
+                            API_URLS.USERS.GET_BY_UID,
                             { uid: data.opponentId },
                             { headers }
                         );
@@ -316,7 +317,7 @@ const ContestStartPage = () => {
                         const headers = token ? { Authorization: `Bearer ${token}` } : {};
                         
                         const response = await axios.post(
-                            `http://localhost:3000/api/users/getUserByUid`,
+                            API_URLS.USERS.GET_BY_UID,
                             { uid: data.opponentId },
                             { headers }
                         );
@@ -411,7 +412,7 @@ const ContestStartPage = () => {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             const response = await axios.post(
-                `http://localhost:3000/api/compiler/submitCode`,
+                API_URLS.COMPILER.SUBMIT_CODE,
                 payload,
                 { headers }
             );
@@ -532,7 +533,7 @@ const ContestStartPage = () => {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             const response = await axios.post(
-                `http://localhost:3000/api/compiler/submitCode`,
+                API_URLS.COMPILER.SUBMIT_CODE,
                 payload,
                 { headers }
             );

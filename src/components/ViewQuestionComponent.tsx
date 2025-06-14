@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { InlineMath, BlockMath } from 'react-katex';
+import { API_URLS } from "../config/server";
 import 'katex/dist/katex.min.css';
 
 // Define interfaces for problem data structure
@@ -75,7 +76,7 @@ const ViewQuestionComponent: React.FC<ViewQuestionComponentProps> = ({
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             const response = await axios.post(
-                `http://localhost:3000/api/problems/get`,
+                API_URLS.PROBLEMS.GET,
                 { id: problemId },
                 { headers }
             );
