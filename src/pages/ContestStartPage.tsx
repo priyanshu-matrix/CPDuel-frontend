@@ -1016,6 +1016,15 @@ const ContestStartPage = () => {
                                         fontFamily: "'JetBrains Mono', 'Consolas', monospace",
                                         lineHeight: 22,
                                         renderLineHighlight: "gutter",
+                                        scrollbar: {
+                                            alwaysConsumeMouseWheel: false,
+                                            handleMouseWheel: true,
+                                            verticalScrollbarSize: 10,
+                                            horizontalScrollbarSize: 10,
+                                        },
+                                        overviewRulerLanes: 0,
+                                        hideCursorInOverviewRuler: true,
+                                        overviewRulerBorder: false,
                                     }}
                                 />
                             </div>
