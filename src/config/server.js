@@ -69,6 +69,10 @@ export const API_URLS = {
     // Compiler endpoints
     COMPILER: {
         SUBMIT_CODE: `${API_URL}/compiler/submitCode`
+    },
+
+    TESTCASE: {
+        DELETE_BY_PROBLEM_ID: `${API_URL}/testcases/delete`,
     }
 };
 

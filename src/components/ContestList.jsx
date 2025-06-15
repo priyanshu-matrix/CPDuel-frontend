@@ -243,6 +243,32 @@ const ContestList = () => {
         setDeletingProblem(problemId);
         try {
             const token = localStorage.getItem("token");
+            
+            // First, delete the test cases
+            try {
+                const testCaseResponse = await fetch(
+                    API_URLS.TESTCASE.DELETE_BY_PROBLEM_ID,
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            problemId: problemId,
+                        }),
+                    }
+                );
+                
+                if (!testCaseResponse.ok) {
+                    console.warn("Failed to delete test cases, but continuing with problem deletion");
+                }
+            } catch (testCaseError) {
+                console.warn("Error deleting test cases:", testCaseError);
+                // Continue with problem deletion even if test case deletion fails
+            }
+
+            // Then delete the problem
             const response = await fetch(
                 API_URLS.PROBLEMS.DELETE,
                 {
@@ -258,7 +284,7 @@ const ContestList = () => {
             );
 
             if (response.ok) {
-                toast.success("Problem deleted successfully!");
+                toast.success("Problem and its test cases deleted successfully!");
                 // Refresh the contest problems list
                 fetchContestProblems();
             } else {
