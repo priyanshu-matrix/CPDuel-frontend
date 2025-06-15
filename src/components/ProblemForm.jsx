@@ -1,5 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
+import "katex/dist/katex.min.css";
+import { InlineMath, BlockMath } from "react-katex";
 
 const AVAILABLE_TAGS = [
     'Array', 'String', 'Hash Table', 'Dynamic Programming', 'Math',
@@ -15,6 +17,196 @@ const DIFFICULTY_COLORS = {
     'Easy': 'text-green-400 bg-green-400/10 border-green-400/30',
     'Medium': 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30',
     'Hard': 'text-red-400 bg-red-400/10 border-red-400/30'
+};
+
+// Rich Text Editor Component
+const RichTextEditor = ({ value, onChange, placeholder, rows = 6, className = "" }) => {
+    const textareaRef = useRef(null);
+    const [showPreview, setShowPreview] = useState(false);
+
+    const formatText = (format) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = value.substring(start, end);
+        let formattedText = '';
+
+        switch (format) {
+            case 'bold':
+                formattedText = `**${selectedText || 'bold text'}**`;
+                break;
+            case 'italic':
+                formattedText = `*${selectedText || 'italic text'}*`;
+                break;
+            case 'bullet':
+                formattedText = `\n• ${selectedText || 'list item'}`;
+                break;
+            case 'math':
+                formattedText = `$${selectedText || 'x^2 + y^2 = z^2'}$`;
+                break;
+            case 'mathblock':
+                formattedText = `$$\n${selectedText || 'x^2 + y^2 = z^2'}\n$$`;
+                break;
+            default:
+                return;
+        }
+
+        const newValue = value.substring(0, start) + formattedText + value.substring(end);
+        onChange({ target: { value: newValue } });
+
+        // Set cursor position after formatting
+        setTimeout(() => {
+            const newCursorPos = start + formattedText.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.focus();
+        }, 0);
+    };
+
+    // Function to parse text and render with formatting
+    const parseTextWithFormatting = (text) => {
+        if (!text) return "";
+
+        // First handle math expressions
+        const mathRegex = /(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$)/g;
+        const parts = text.split(mathRegex);
+
+        return parts.map((part, index) => {
+            if (part.startsWith("$$") && part.endsWith("$$")) {
+                const mathContent = part.slice(2, -2).trim();
+                return <BlockMath key={index} math={mathContent} />;
+            } else if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
+                const mathContent = part.slice(1, -1).trim();
+                return <InlineMath key={index} math={mathContent} />;
+            } else {
+                // Handle other formatting
+                let formattedText = part;
+                
+                // Bold text
+                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Italic text
+                formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                // Bullet points
+                formattedText = formattedText.replace(/^• (.+)$/gm, '<li>$1</li>');
+                formattedText = formattedText.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+                
+                // Line breaks
+                formattedText = formattedText.replace(/\n/g, '<br>');
+
+                return (
+                    <span 
+                        key={index} 
+                        dangerouslySetInnerHTML={{ __html: formattedText }}
+                    />
+                );
+            }
+        });
+    };
+
+    return (
+        <div className={`space-y-2 ${className}`}>
+            {/* Formatting Toolbar */}
+            <div className="flex flex-wrap gap-2 p-2 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                <button
+                    type="button"
+                    onClick={() => formatText('bold')}
+                    className="px-3 py-1 text-xs bg-slate-600/50 hover:bg-slate-600 text-white rounded transition-colors font-bold"
+                    title="Bold (Ctrl+B)"
+                >
+                    B
+                </button>
+                <button
+                    type="button"
+                    onClick={() => formatText('italic')}
+                    className="px-3 py-1 text-xs bg-slate-600/50 hover:bg-slate-600 text-white rounded transition-colors italic"
+                    title="Italic (Ctrl+I)"
+                >
+                    I
+                </button>
+                <button
+                    type="button"
+                    onClick={() => formatText('bullet')}
+                    className="px-3 py-1 text-xs bg-slate-600/50 hover:bg-slate-600 text-white rounded transition-colors"
+                    title="Bullet Point"
+                >
+                    •
+                </button>
+                <button
+                    type="button"
+                    onClick={() => formatText('math')}
+                    className="px-3 py-1 text-xs bg-blue-600/50 hover:bg-blue-600 text-white rounded transition-colors"
+                    title="Inline Math"
+                >
+                    ∑
+                </button>
+                <button
+                    type="button"
+                    onClick={() => formatText('mathblock')}
+                    className="px-3 py-1 text-xs bg-blue-600/50 hover:bg-blue-600 text-white rounded transition-colors"
+                    title="Math Block"
+                >
+                    ∑∑
+                </button>
+                <div className="h-6 w-px bg-slate-500 mx-1"></div>
+                <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className={`px-3 py-1 text-xs rounded transition-colors ${
+                        showPreview 
+                            ? 'bg-green-600/50 hover:bg-green-600 text-white' 
+                            : 'bg-slate-600/50 hover:bg-slate-600 text-white'
+                    }`}
+                    title="Toggle Preview"
+                >
+                    👁
+                </button>
+            </div>
+
+            {/* Editor/Preview Area */}
+            <div className="grid grid-cols-1 gap-4">
+                <div className={showPreview ? 'grid grid-cols-2 gap-4' : ''}>
+                    {/* Editor */}
+                    <div className={showPreview ? '' : 'col-span-full'}>
+                        <textarea
+                            ref={textareaRef}
+                            rows={rows}
+                            value={value}
+                            onChange={onChange}
+                            className="w-full px-4 py-3 rounded-xl bg-slate-800/70 border border-slate-600/50 text-white placeholder-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200 hover:border-slate-500 resize-none font-mono text-sm"
+                            placeholder={placeholder}
+                            onKeyDown={(e) => {
+                                if (e.ctrlKey || e.metaKey) {
+                                    if (e.key === 'b') {
+                                        e.preventDefault();
+                                        formatText('bold');
+                                    } else if (e.key === 'i') {
+                                        e.preventDefault();
+                                        formatText('italic');
+                                    }
+                                }
+                            }}
+                        />
+                        <div className="text-xs text-gray-400 mt-1">
+                            Use **bold**, *italic*, • bullets, $math$ or $$math blocks$$
+                        </div>
+                    </div>
+
+                    {/* Preview */}
+                    {showPreview && (
+                        <div className="px-4 py-3 rounded-xl bg-slate-700/30 border border-slate-600/30 text-white min-h-[120px] max-h-[300px] overflow-y-auto">
+                            <div className="text-xs text-gray-400 mb-2">Preview:</div>
+                            <div className="prose prose-invert prose-sm max-w-none">
+                                {parseTextWithFormatting(value)}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const ProblemForm = ({ 
@@ -105,6 +297,13 @@ const ProblemForm = ({
         setFormData((prevData) => ({
             ...prevData,
             [id]: type === 'number' ? Number(value) : value,
+        }));
+    };
+
+    const handleDescriptionChange = (e) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            description: e.target.value,
         }));
     };
 
@@ -317,14 +516,11 @@ const ProblemForm = ({
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-300">
                                         Problem Description *
                                     </label>
-                                    <textarea
-                                        id="description"
+                                    <RichTextEditor
                                         value={formData.description}
-                                        onChange={handleChange}
-                                        rows={6}
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-800/70 border border-slate-600/50 text-white placeholder-gray-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200 hover:border-slate-500 resize-none"
-                                        placeholder="Describe the problem statement in detail. Include what the function should do, any special conditions, and expected behavior..."
-                                        required
+                                        onChange={handleDescriptionChange}
+                                        placeholder="Describe the problem statement in detail. Use **bold**, *italic*, • bullets, and $math$ expressions..."
+                                        rows={8}
                                     />
                                     <div className="text-xs text-gray-400">
                                         {formData.description.length}/2000 characters
@@ -438,12 +634,11 @@ const ProblemForm = ({
                                                 
                                                 <div className="mt-3">
                                                     <label className="block text-xs text-gray-400 mb-1">Explanation (Optional)</label>
-                                                    <textarea
-                                                        rows={2}
+                                                    <RichTextEditor
                                                         value={example.explanation}
                                                         onChange={(e) => updateExample(index, 'explanation', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white text-sm placeholder-gray-400 focus:border-orange-400 focus:ring-1 focus:ring-orange-400/20 transition-all duration-200"
-                                                        placeholder="Explain the example (optional)..."
+                                                        placeholder="Explain the example with **bold**, *italic*, • bullets, or $math$ expressions..."
+                                                        rows={3}
                                                     />
                                                 </div>
                                             </div>
