@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+/* Custom scrollbar styles for console output */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #374151;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #374151;
+  border-radius: 6px;
+  margin: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b7280, #9ca3af);
+  border-radius: 6px;
+  border: 2px solid #374151;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9ca3af, #d1d5db);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: #374151;
+}
+
+/* Ensure proper word wrapping for long text */
+.console-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  hyphens: auto;
+}
+
+/* Console output animations */
+.console-line {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1023,11 +1023,30 @@ const ContestStartPage = () => {
                     </div>
 
                     {/* Enhanced Console Output - Now takes half of the available space */}
-                    <div className="flex-1 p-4 min-h-0">
-                        <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg border border-gray-700/50 h-full flex flex-col shadow-xl">
+                    <div className="flex-1 p-4 min-h-0 max-h-[50vh]">
+                        <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg border border-gray-700/50 h-full flex flex-col shadow-xl overflow-hidden">
                             <div className="px-4 py-3 border-b border-gray-700/50 shrink-0 bg-gray-800/80">
-                                <h4 className="text-sm font-semibold text-amber-400 flex items-center"></h4>
-                                <div className=" p-4 flex justify-between items-center shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-semibold text-amber-400 flex items-center">
+                                        <span className="mr-2">🖥️</span>
+                                        Console Output
+                                        {consoleOutput.length > 0 && (
+                                            <span className="ml-2 text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded-full">
+                                                {consoleOutput.length} line{consoleOutput.length !== 1 ? 's' : ''}
+                                            </span>
+                                        )}
+                                    </h4>
+                                    {consoleOutput.length > 0 && (
+                                        <button
+                                            onClick={() => setConsoleOutput([])}
+                                            className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded transition-colors"
+                                            title="Clear console"
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="mt-3 flex justify-between items-center">
                                     <button
                                         onClick={handleRun}
                                         disabled={isRunning}
@@ -1049,25 +1068,39 @@ const ContestStartPage = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex-1 p-4 overflow-y-auto min-h-0">
-                                {consoleOutput.length > 0 ? (
-                                    consoleOutput.map((line, idx) => (
-                                        <pre
-                                            key={idx}
-                                            className={`text-sm font-mono leading-relaxed mb-1 ${
-                                                line.type === 'success' ? 'text-green-400' :
-                                                line.type === 'error' ? 'text-red-400' :
-                                                'text-gray-300' // Default for 'info'
-                                            }`}
-                                        >
-                                            {line.text}
-                                        </pre>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-500 text-sm italic">
-                                        Run your code to see output...
-                                    </p>
-                                )}
+                            <div className="flex-1 min-h-0 overflow-hidden">
+                                <div className="h-full p-4 overflow-y-auto custom-scrollbar">
+                                    {consoleOutput.length > 0 ? (
+                                        <div className="space-y-1">
+                                            {consoleOutput.map((line, idx) => (
+                                                <pre
+                                                    key={idx}
+                                                    className={`text-sm font-mono leading-relaxed whitespace-pre-wrap break-words console-text console-line ${
+                                                        line.type === 'success' ? 'text-green-400' :
+                                                        line.type === 'error' ? 'text-red-400' :
+                                                        'text-gray-300' // Default for 'info'
+                                                    }`}
+                                                    style={{ 
+                                                        wordBreak: 'break-word',
+                                                        maxWidth: '100%',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                >
+                                                    {line.text.length > 5000 ? 
+                                                        `${line.text.substring(0, 5000)}...\n\n[Output truncated - showing first 5000 characters]` : 
+                                                        line.text
+                                                    }
+                                                </pre>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex items-center justify-center">
+                                            <p className="text-gray-500 text-sm italic">
+                                                Run your code to see output...
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
