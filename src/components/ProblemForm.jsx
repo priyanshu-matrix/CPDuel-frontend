@@ -23,24 +23,15 @@ const ProblemForm = ({
     });
     const [testCasesZipFile, setTestCasesZipFile] = useState(null);
 
-    // Decode base64 function
-    const decodeFromBase64 = (encodedText) => {
-        try {
-            return atob(encodedText);
-        } catch (error) {
-            return encodedText;
-        }
-    };
-
     // Initialize form with data for editing
     useEffect(() => {
         if (initialData && isEditing) {
             setFormData({
-                title: decodeFromBase64(initialData.title) || '',
-                description: decodeFromBase64(initialData.description) || '',
+                title: initialData.title || '',
+                description: initialData.description || '',
                 difficulty: initialData.difficulty || 'Easy',
-                inputFormat: decodeFromBase64(initialData.inputFormat) || '',
-                outputFormat: decodeFromBase64(initialData.outputFormat) || '',
+                inputFormat: initialData.inputFormat || '',
+                outputFormat: initialData.outputFormat || '',
                 examples: Array.isArray(initialData.examples) 
                     ? JSON.stringify(initialData.examples, null, 2) 
                     : initialData.examples || '',

@@ -82,37 +82,26 @@ const ViewQuestionComponent: React.FC<ViewQuestionComponentProps> = ({
             );
 
             if (response.data && response.data.problem) {
-                const decodedProblem: ProblemData = {
+                // Work with plain text data directly - no decoding needed
+                const problemData: ProblemData = {
                     ...response.data.problem,
-                    title: response.data.problem.title
-                        ? atob(response.data.problem.title)
-                        : "",
-                    description: response.data.problem.description
-                        ? atob(response.data.problem.description)
-                        : "",
-                    inputFormat: response.data.problem.inputFormat
-                        ? atob(response.data.problem.inputFormat)
-                        : "",
-                    outputFormat: response.data.problem.outputFormat
-                        ? atob(response.data.problem.outputFormat)
-                        : "",
-                    examples:
-                        response.data.problem.examples?.map((ex: any) => ({
-                            ...ex,
-                            input: ex.input ? atob(ex.input) : "",
-                            output: ex.output ? atob(ex.output) : "",
-                            explanation: ex.explanation ? atob(ex.explanation) : "",
-                        })) || [],
-                    constraints:
-                        response.data.problem.constraints?.map((constraint: string) =>
-                            constraint ? atob(constraint) : ""
-                        ) || [],
-                    tags:
-                        response.data.problem.tags?.map((tag: string) =>
-                            tag ? atob(tag) : ""
-                        ) || [],
+                    title: response.data.problem.title || "",
+                    description: response.data.problem.description || "",
+                    inputFormat: response.data.problem.inputFormat || "",
+                    outputFormat: response.data.problem.outputFormat || "",
+                    examples: response.data.problem.examples || [],
+                    constraints: response.data.problem.constraints || [],
+                    tags: response.data.problem.tags || [],
                 };
-                setProblemData(decodedProblem);
+                
+                // Debug log to check the data structure
+                console.log('Problem data received:', {
+                    title: problemData.title,
+                    constraints: problemData.constraints,
+                    tags: problemData.tags
+                });
+                
+                setProblemData(problemData);
             } else {
                 setError("Problem data is not in the expected format.");
             }
@@ -288,15 +277,14 @@ const ViewQuestionComponent: React.FC<ViewQuestionComponentProps> = ({
                                         Constraints
                                     </h2>
                                     <div className="bg-gray-700/30 rounded-lg p-4">
-                                        <ul className="space-y-1 text-gray-300">
-                                            {problemData.constraints.map((constraint, index) => (
-                                                <li key={index} className="flex items-start">
-                                                    <span className="text-orange-400 mr-2">•</span>
-                                                    <span className="whitespace-pre-wrap">
-                                                        {parseTextWithMath(atob(constraint))}
-                                                    </span>
-                                                </li>
-                                            ))}
+                                        <ul className="space-y-1 text-gray-300">                                        {problemData.constraints.map((constraint, index) => (
+                                            <li key={index} className="flex items-start">
+                                                <span className="text-orange-400 mr-2">•</span>
+                                                <span className="whitespace-pre-wrap">
+                                                    {parseTextWithMath(constraint)}
+                                                </span>
+                                            </li>
+                                        ))}
                                         </ul>
                                     </div>
                                 </div>

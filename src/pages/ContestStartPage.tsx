@@ -164,37 +164,26 @@ const ContestStartPage = () => {
                 );
 
                 if (problemResponse.data && problemResponse.data.problem) {
-                    const decodedProblem = {
+                    // Work with plain text data directly - no decoding needed
+                    const problemData = {
                         ...problemResponse.data.problem,
-                        title: problemResponse.data.problem.title
-                            ? atob(problemResponse.data.problem.title)
-                            : "",
-                        description: problemResponse.data.problem.description
-                            ? atob(problemResponse.data.problem.description)
-                            : "",
-                        inputFormat: problemResponse.data.problem.inputFormat
-                            ? atob(problemResponse.data.problem.inputFormat)
-                            : "",
-                        outputFormat: problemResponse.data.problem.outputFormat
-                            ? atob(problemResponse.data.problem.outputFormat)
-                            : "",
-                        examples:
-                            problemResponse.data.problem.examples?.map((ex) => ({
-                                ...ex,
-                                input: ex.input ? atob(ex.input) : "",
-                                output: ex.output ? atob(ex.output) : "",
-                                explanation: ex.explanation ? atob(ex.explanation) : "",
-                            })) || [],
-                        constraints:
-                            problemResponse.data.problem.constraints?.map((constraint) =>
-                                constraint ? atob(constraint) : ""
-                            ) || [],
-                        tags:
-                            problemResponse.data.problem.tags?.map((tag) =>
-                                tag ? atob(tag) : ""
-                            ) || [],
+                        title: problemResponse.data.problem.title || "",
+                        description: problemResponse.data.problem.description || "",
+                        inputFormat: problemResponse.data.problem.inputFormat || "",
+                        outputFormat: problemResponse.data.problem.outputFormat || "",
+                        examples: problemResponse.data.problem.examples || [],
+                        constraints: problemResponse.data.problem.constraints || [],
+                        tags: problemResponse.data.problem.tags || [],
                     };
-                    setProblemData(decodedProblem);
+                    
+                    // Debug log to check the data structure
+                    console.log('Contest problem data received:', {
+                        title: problemData.title,
+                        constraints: problemData.constraints,
+                        tags: problemData.tags
+                    });
+                    
+                    setProblemData(problemData);
                     // setError(null); // setError(null) is already handled by the structure
                 } else {
                     setError("Problem data is not in the expected format.");
