@@ -284,6 +284,27 @@ const ContestList = () => {
             );
 
             if (response.ok) {
+                // Also remove the problem from this contest if it exists
+                try {
+                    await fetch(
+                        API_URLS.CONTESTS.REMOVE_PROBLEM,
+                        {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                ContestID: contestId,
+                                ProblemID: problemId,
+                            }),
+                        }
+                    );
+                } catch (removeError) {
+                    console.warn("Error removing problem from contest:", removeError);
+                    // Don't show error to user as the main deletion was successful
+                }
+
                 toast.success("Problem and its test cases deleted successfully!");
                 // Refresh the contest problems list
                 fetchContestProblems();
