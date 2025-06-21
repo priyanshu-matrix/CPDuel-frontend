@@ -368,65 +368,57 @@ const StatsPage = () => {
                 </div>
 
                 {/* Recent Solved Problems */}
-                <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                        🏆 Recently Solved Problems
-                    </h2>
-                    {userStats.solvedProblems.length > 0 ? (
-                        <div className="grid gap-4">
-                            {userStats.solvedProblems.map((problem) => (
-                                <div 
-                                    key={problem.id}
-                                    className="bg-gray-700 rounded-xl p-4 flex items-center justify-between hover:bg-gray-600 transition-colors cursor-pointer"
-                                    onClick={() => handleViewProblem(problem)}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                            problem.difficulty === 'Easy' ? 'bg-green-500' :
-                                            problem.difficulty === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'
-                                        }`}></div>
-                                        <div>
-                                            <h3 className="text-white font-bold">{problem.title}</h3>
-                                            <p className="text-gray-400 text-sm">Solved on {new Date(problem.solvedAt).toLocaleDateString()}</p>
+                                <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
+                                    <h2 className="text-2xl font-bold text-white mb-6">
+                                        🏆 Recently Solved Problems
+                                    </h2>
+                                    {userStats.solvedProblems.length > 0 ? (
+                                        <div className={`grid gap-4 ${userStats.solvedProblems.length > 4 ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
+                                            {userStats.solvedProblems.map((problem) => (
+                                                <div 
+                                                    key={problem.id}
+                                                    className="bg-gray-700 rounded-xl p-4 flex items-center justify-between hover:bg-gray-600 transition-colors cursor-pointer"
+                                                    onClick={() => handleViewProblem(problem)}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-3 h-3 rounded-full ${
+                                                            problem.difficulty === 'Easy' ? 'bg-green-500' :
+                                                            problem.difficulty === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'
+                                                        }`}></div>
+                                                        <div>
+                                                            <h3 className="text-white font-bold">{problem.title}</h3>
+                                                            <p className="text-gray-400 text-sm">Solved on {new Date(problem.solvedAt).toLocaleDateString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                                            problem.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
+                                                            problem.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 
+                                                            'bg-red-500/20 text-red-400'
+                                                        }`}>
+                                                            {problem.difficulty}
+                                                        </span>
+                                                        <span className="text-amber-400 font-bold">+{problem.points} pts</span>
+                                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                            problem.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' :
-                                            problem.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 
-                                            'bg-red-500/20 text-red-400'
-                                        }`}>
-                                            {problem.difficulty}
-                                        </span>
-                                        <span className="text-amber-400 font-bold">+{problem.points} pts</span>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </div>
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <div className="text-6xl mb-4">🚀</div>
+                                            <h3 className="text-xl font-bold text-white mb-2">Start Your Coding Journey!</h3>
+                                            <p className="text-gray-400 mb-6">
+                                                Solve your first problem to see your progress here.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12">
-                            <div className="text-6xl mb-4">🚀</div>
-                            <h3 className="text-xl font-bold text-white mb-2">Start Your Coding Journey!</h3>
-                            <p className="text-gray-400 mb-6">
-                                Solve your first problem to see your progress here.
-                            </p>
-                            <div className="flex justify-center gap-4">
-                                <button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200">
-                                    Browse Problems
-                                </button>
-                                <button className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200">
-                                    Join Contest
-                                </button>
                             </div>
-                        </div>
-                    )}
-                </div>
-            </div>
 
-            {/* View Question Modal */}
+                            {/* View Question Modal */}
             {selectedProblem && (
                 <ViewQuestionComponent
                     problemId={selectedProblem}

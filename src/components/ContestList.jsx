@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import ProblemForm from "./ProblemForm.jsx";
@@ -8,6 +8,7 @@ import { API_URLS } from "../config/server";
 
 const ContestList = () => {
     const { contestId } = useParams();
+    const navigate = useNavigate();
     const [problems, setProblems] = useState([]);
     const [contestName, setContestName] = useState("");
     const [loading, setLoading] = useState(true);
@@ -404,6 +405,16 @@ const ContestList = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen bg-gray-900 py-10 px-4">
+            {/* Back Button */}
+            <div className="w-full max-w-2xl mb-6">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="bg-gray-700/80 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-semibold text-gray-200 transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+                >
+                    ← Go Back
+                </button>
+            </div>
+
             <h1 className="text-3xl font-bold text-gray-100 mb-8">
                 {contestName ? `Problems for ${contestName}` : "Contest Problems"}
             </h1>

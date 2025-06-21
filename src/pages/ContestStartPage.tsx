@@ -30,7 +30,7 @@ interface ProblemData {
     points: number;
 }
 
-// Function to parse text and render inline/block math with better regex
+// Function to parse text and render inline/block math with better regex and formatting
 const parseTextWithMath = (text) => {
     if (!text) return "";
 
@@ -44,8 +44,30 @@ const parseTextWithMath = (text) => {
         } else if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
             const mathContent = part.slice(1, -1).trim();
             return <InlineMath key={index} math={mathContent} />;
+        } else {
+            // Handle other formatting
+            let formattedText = part;
+            
+            // Bold text
+            formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Italic text
+            formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Bullet points
+            formattedText = formattedText.replace(/^• (.+)$/gm, '<li>$1</li>');
+            formattedText = formattedText.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // Line breaks
+            formattedText = formattedText.replace(/\n/g, '<br>');
+
+            return (
+                <span 
+                    key={index} 
+                    dangerouslySetInnerHTML={{ __html: formattedText }}
+                />
+            );
         }
-        return part;
     });
 };
 
@@ -395,6 +417,7 @@ const ContestStartPage = () => {
                 question_id: problemData._id,
                 userID: matchDetails.userId,
                 runSampleOnly: true,
+                timeLimit: problemData.timeLimit
             };
 
             const token = localStorage.getItem("token");
@@ -515,7 +538,8 @@ const ContestStartPage = () => {
                 question_id: problemData._id,
                 userId: matchDetails.userId,
                 runSampleOnly: false,
-                contestId: contestId, // Include contestId if needed by backend
+                contestId: contestId,
+                timeLimit: problemData.timeLimit
             };
 
             const token = localStorage.getItem("token");
