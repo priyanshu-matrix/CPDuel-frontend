@@ -7,7 +7,6 @@ const navLinks = [
     { href: "/home", label: "Home" },
     { href: "/contest", label: "Contest" },
     { href: "/sheets", label: "Sheets" },
-    { href: "/stats", label: "Stats" },
 ];
 
 const Navbar = () => {
