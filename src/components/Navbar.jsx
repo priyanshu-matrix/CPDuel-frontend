@@ -7,6 +7,7 @@ const navLinks = [
     { href: "/home", label: "Home" },
     { href: "/contest", label: "Contest" },
     { href: "/sheets", label: "Sheets" },
+    { href: "/stats", label: "Stats" },
 ];
 
 const Navbar = () => {
@@ -141,6 +142,13 @@ const Navbar = () => {
                                 "Loading user data..."
                             )}
                         </p>
+                        <Link
+                            to="/stats"
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mt-4 block text-center"
+                            onClick={toggleProfile}
+                        >
+                            📊 View Stats
+                        </Link>
                         {isAdmin && (
                             <Link
                                 to="/add-contest"

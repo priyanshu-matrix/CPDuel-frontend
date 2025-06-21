@@ -11,6 +11,7 @@ import DPSheetPage from "./pages/DPSheetPage";
 import GraphSheetPage from "./pages/GraphSheetPage";
 import TreeSheetPage from "./pages/TreeSheetPage";
 import RangeQuerySheetPage from "./pages/RangeQuerySheetPage";
+import StatsPage from "./pages/StatsPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -97,6 +98,13 @@ function App() {
                         <ProtectedRoute>
                             <Navbar />
                             <ContestStartPage />
+                            <Footer />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/stats" element={
+                        <ProtectedRoute>
+                            <Navbar />
+                            <StatsPage />
                             <Footer />
                         </ProtectedRoute>
                     } />

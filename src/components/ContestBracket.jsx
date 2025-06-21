@@ -1020,7 +1020,7 @@ const ContestBracket = () => {
                                 <div className={`text-2xl font-bold ${finalists.length > 0 ? 'text-amber-400 animate-pulse' : 'text-amber-400'}`}>
                                     {finalists.length}
                                 </div>
-                                <div className="text-sm text-gray-400">FINALISTS</div>
+                                <div className="text-sm text-gray-400">CHAMPION</div>
                                 {finalists.length > 0 && (
                                     <div className="absolute -top-2 -right-2 w-3 h-3 bg-amber-400 rounded-full animate-ping"></div>
                                 )}
@@ -1057,7 +1057,7 @@ const ContestBracket = () => {
                         {/* Semi-Finals Arena */}
                         <div className="space-y-4">
                             <div className="text-center mb-6">
-                                <h3 className="text-xl font-bold text-purple-400 mb-2">ELITE ARENA</h3>
+                                <h3 className="text-xl font-bold text-purple-400 mb-2">Top 4 Gladiators</h3>
                                 <div className="h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent rounded-full"></div>
                             </div>
                             <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
