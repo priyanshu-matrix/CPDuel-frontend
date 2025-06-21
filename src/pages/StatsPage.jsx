@@ -31,6 +31,7 @@ const StatsPage = () => {
 
     const fetchUserStats = async () => {
         try {
+            setLoading(true);
             const token = localStorage.getItem("token");
             if (!token) {
                 setError("Please login to view stats");
@@ -57,29 +58,112 @@ const StatsPage = () => {
             const solvedProblems = userData.solvedProblems || [];
             const registeredContests = userData.registeredContests || [];
 
-            // Process solved problems to get problem details
+            console.log('User solved problems:', solvedProblems); // Debug log
+
+            // Process solved problems to get actual problem details
             const processedSolvedProblems = await Promise.all(
                 solvedProblems.map(async (solvedProblem, index) => {
-                    // For now, we'll create mock data based on the solved problem
-                    // In a real scenario, you might want to fetch problem details
-                    const difficulties = ['Easy', 'Medium', 'Hard'];
-                    const mockTitles = [
-                        'Two Sum', 'Add Two Numbers', 'Longest Substring', 'Palindrome Number', 
-                        'Regular Expression', 'Merge Intervals', 'Valid Parentheses', 'Binary Tree Traversal',
-                        'Maximum Subarray', 'Climbing Stairs', 'House Robber', 'Coin Change',
-                        'Word Break', 'Longest Palindrome', 'Edit Distance'
-                    ];
-                    
-                    return {
-                        id: solvedProblem.problemId || `problem-${index}`,
-                        problemId: solvedProblem.problemId,
-                        title: mockTitles[index % mockTitles.length] || `Problem ${index + 1}`,
-                        difficulty: difficulties[index % 3],
-                        points: difficulties[index % 3] === 'Easy' ? 100 : difficulties[index % 3] === 'Medium' ? 200 : 300,
-                        solvedAt: solvedProblem.solvedAt ? new Date(solvedProblem.solvedAt).toLocaleDateString() : 'Recently'
-                    };
+                    try {
+                        // Fetch actual problem details from the API
+                        if (solvedProblem.problemId) {
+                            console.log(`🔍 Fetching problem details for ID: ${solvedProblem.problemId} using POST ${API_URLS.PROBLEMS.GET}`);
+                            
+                            const problemResponse = await fetch(API_URLS.PROBLEMS.GET, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({ id: solvedProblem.problemId }),
+                            });
+
+                            if (problemResponse.ok) {
+                                try {
+                                    const responseData = await problemResponse.json();
+                                    console.log(`✅ Fetched real problem data for ${solvedProblem.problemId}:`, responseData); // Debug log
+                                    
+                                    // Extract problem data from response (it might be nested in a 'problem' property)
+                                    const problemData = responseData.problem || responseData;
+                                    
+                                    // Normalize difficulty (handle different formats)
+                                    let difficulty = 'Medium'; // default
+                                    if (problemData.difficulty) {
+                                        const diffStr = problemData.difficulty.toString().toLowerCase();
+                                        if (diffStr.includes('easy')) difficulty = 'Easy';
+                                        else if (diffStr.includes('medium')) difficulty = 'Medium';
+                                        else if (diffStr.includes('hard')) difficulty = 'Hard';
+                                        else difficulty = problemData.difficulty; // use as-is if it's already formatted
+                                    }
+                                    
+                                    // Calculate points based on actual difficulty
+                                    const points = difficulty === 'Easy' ? 100 : 
+                                                  difficulty === 'Medium' ? 200 : 300;
+                                    
+                                    return {
+                                        id: solvedProblem.problemId,
+                                        problemId: solvedProblem.problemId,
+                                        title: problemData.title || problemData.name || `Problem ${index + 1}`,
+                                        difficulty: difficulty,
+                                        points: points,
+                                        solvedAt: solvedProblem.solvedAt ? new Date(solvedProblem.solvedAt).toLocaleDateString() : 'Recently'
+                                    };
+                                } catch (parseError) {
+                                    console.error(`❌ Error parsing problem data for ${solvedProblem.problemId}:`, parseError);
+                                }
+                            } else {
+                                const errorText = await problemResponse.text();
+                                console.warn(`❌ Failed to fetch problem data for ${solvedProblem.problemId}`, {
+                                    status: problemResponse.status,
+                                    statusText: problemResponse.statusText,
+                                    error: errorText
+                                });
+                            }
+                        }
+                        
+                        // Fallback to mock data if API call fails
+                        const difficulties = ['Easy', 'Medium', 'Hard'];
+                        const mockTitles = [
+                            'Two Sum', 'Add Two Numbers', 'Longest Substring', 'Palindrome Number', 
+                            'Regular Expression', 'Merge Intervals', 'Valid Parentheses', 'Binary Tree Traversal',
+                            'Maximum Subarray', 'Climbing Stairs', 'House Robber', 'Coin Change',
+                            'Word Break', 'Longest Palindrome', 'Edit Distance'
+                        ];
+                        
+                        const fallbackDifficulty = difficulties[index % 3];
+                        return {
+                            id: solvedProblem.problemId || `problem-${index}`,
+                            problemId: solvedProblem.problemId,
+                            title: mockTitles[index % mockTitles.length] || `Problem ${index + 1}`,
+                            difficulty: fallbackDifficulty,
+                            points: fallbackDifficulty === 'Easy' ? 100 : fallbackDifficulty === 'Medium' ? 200 : 300,
+                            solvedAt: solvedProblem.solvedAt ? new Date(solvedProblem.solvedAt).toLocaleDateString() : 'Recently'
+                        };
+                    } catch (error) {
+                        console.error(`Error fetching problem details for ${solvedProblem.problemId}:`, error);
+                        
+                        // Fallback to mock data on error
+                        const difficulties = ['Easy', 'Medium', 'Hard'];
+                        const mockTitles = [
+                            'Two Sum', 'Add Two Numbers', 'Longest Substring', 'Palindrome Number', 
+                            'Regular Expression', 'Merge Intervals', 'Valid Parentheses', 'Binary Tree Traversal',
+                            'Maximum Subarray', 'Climbing Stairs', 'House Robber', 'Coin Change',
+                            'Word Break', 'Longest Palindrome', 'Edit Distance'
+                        ];
+                        
+                        const fallbackDifficulty = difficulties[index % 3];
+                        return {
+                            id: solvedProblem.problemId || `problem-${index}`,
+                            problemId: solvedProblem.problemId,
+                            title: mockTitles[index % mockTitles.length] || `Problem ${index + 1}`,
+                            difficulty: fallbackDifficulty,
+                            points: fallbackDifficulty === 'Easy' ? 100 : fallbackDifficulty === 'Medium' ? 200 : 300,
+                            solvedAt: solvedProblem.solvedAt ? new Date(solvedProblem.solvedAt).toLocaleDateString() : 'Recently'
+                        };
+                    }
                 })
             );
+
+            console.log('✅ Final processed solved problems:', processedSolvedProblems); // Debug log
 
             // Calculate difficulty stats
             const difficultyStats = processedSolvedProblems.reduce((acc, problem) => {
