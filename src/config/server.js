@@ -10,18 +10,17 @@ const getEnvVar = (name, fallback = '') => {
 };
 
 // Export the base API URL from environment variables
-export const API_BASE_URL = getEnvVar('VITE_API_URL', 'http://localhost:3000');
-export const API_URL = `${API_BASE_URL}/api`;
+const baseUrl = getEnvVar('VITE_API_URL', '') || getEnvVar('REACT_APP_API_URL', '');
+export const API_BASE_URL = baseUrl;
+export const API_URL = baseUrl ? `${baseUrl}/api` : '';
 
 // For compatibility with REACT_APP_API_URL (if using Create React App format)
-export const REACT_APP_API_URL = getEnvVar('VITE_API_URL', '') || 
-                                  getEnvVar('REACT_APP_API_URL', '') || 
-                                  'http://localhost:3000';
+export const REACT_APP_API_URL = baseUrl;
 
 // Socket URL
 export const SOCKET_URL = getEnvVar('VITE_SOCKET_URL', '') || 
-                          getEnvVar('REACT_APP_SOCKET_URL', '') || 
-                          'http://localhost:3000';
+                          getEnvVar('REACT_APP_SOCKET_URL', '') ||
+                          baseUrl;
 
 // Helper functions
 export const getApiBaseUrl = () => API_URL;
