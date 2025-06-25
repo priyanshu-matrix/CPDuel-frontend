@@ -16,7 +16,6 @@ CP Duel is a modern, competitive programming duel platform where users can chall
 - **Contest Management** with create/join functionality
 - **Statistics Dashboard** for performance tracking
 - **Responsive, dark-themed UI** optimized for all devices
-- **Fast Global Access** deployed on Vercel
 
 ---
 
