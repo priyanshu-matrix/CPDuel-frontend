@@ -245,7 +245,7 @@ const StatsPage = () => {
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-5xl font-extrabold text-white mb-4">
-                        📊 Your <span className="text-amber-400">Stats</span>
+                        Your <span className="text-amber-400">Stats</span>
                     </h1>
                     <p className="text-xl text-gray-300">
                         Welcome back, <span className="font-bold text-amber-400">{userStats.name}</span>
